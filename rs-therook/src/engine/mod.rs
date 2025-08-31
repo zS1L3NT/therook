@@ -1,8 +1,10 @@
+pub mod bitboard;
 pub mod board;
 pub mod r#move;
 pub mod piece;
 pub mod team;
 
+pub use bitboard::*;
 pub use board::*;
 pub use r#move::*;
 pub use piece::*;

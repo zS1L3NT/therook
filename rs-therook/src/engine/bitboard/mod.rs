@@ -1,11 +1,10 @@
 mod _bitops;
-mod _cmp;
 mod _debug;
 mod _tiles;
 
 pub use _tiles::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd)]
 pub struct Bitboard(u64);
 
 impl Bitboard {
