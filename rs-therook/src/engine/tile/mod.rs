@@ -1,3 +1,4 @@
+mod _bit;
 mod _debug;
 
 use super::*;

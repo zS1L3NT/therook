@@ -1,4 +1,4 @@
-mod _bitops;
+mod _bit;
 mod _debug;
 mod _rank_file;
 
