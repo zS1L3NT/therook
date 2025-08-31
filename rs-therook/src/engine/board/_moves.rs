@@ -1,7 +1,7 @@
 use super::*;
 
 impl Board {
-    pub fn calculate_moves(self) -> Vec<Move> {
+    pub fn calculate_moves(&self) -> Vec<Move> {
         let now = std::time::Instant::now();
 
         let moves: Vec<Move> = vec![];

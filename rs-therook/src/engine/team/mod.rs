@@ -6,14 +6,14 @@ pub enum Team {
 }
 
 impl Team {
-    pub fn code(self) -> char {
+    pub fn code(&self) -> char {
         match self {
             White => 'w',
             Black => 'b',
         }
     }
 
-    pub fn opposite(self) -> Self {
+    pub fn opposite(&self) -> Self {
         match self {
             White => Black,
             Black => White,

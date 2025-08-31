@@ -16,10 +16,6 @@ impl Bitboard {
         Bitboard(bitboard)
     }
 
-    pub fn value(self) -> u64 {
-        self.0
-    }
-
     pub fn is_empty(&self) -> bool {
         self.0 == 0
     }

@@ -7,12 +7,16 @@ use castling::*;
 use therook::square;
 
 pub struct Board {
+    // From FEN
     pub bitboards: [Bitboard; 12],
     pub turn: Team,
     pub castling: Castling,
     pub enpassant: Bitboard,
     pub halfmove: u8,
     pub fullmove: u8,
+
+    // Extra state of the board
+    pub captured: Option<Piece>,
 }
 
 impl Board {
@@ -24,6 +28,8 @@ impl Board {
             enpassant: Bitboard::new(),
             halfmove: 0,
             fullmove: 1,
+
+            captured: None,
         }
     }
 
