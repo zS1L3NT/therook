@@ -41,7 +41,7 @@ impl Piece {
         BLACK_PAWN,
     ];
 
-    pub fn new(piece: u8) -> Self {
+    pub fn from(piece: u8) -> Self {
         Piece(piece)
     }
 
