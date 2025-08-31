@@ -3,9 +3,11 @@ pub mod board;
 pub mod r#move;
 pub mod piece;
 pub mod team;
+pub mod tile;
 
 pub use bitboard::*;
 pub use board::*;
 pub use r#move::*;
 pub use piece::*;
 pub use team::*;
+pub use tile::*;

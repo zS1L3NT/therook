@@ -24,7 +24,6 @@ impl Piece {
     pub const BISHOP: u8 = 1 << 2;
     pub const KNIGHT: u8 = 1 << 1;
     pub const PAWN: u8 = 1;
-    pub const NONE: u8 = 0;
 
     pub const ALL: [Piece; 12] = [
         WHITE_KING,

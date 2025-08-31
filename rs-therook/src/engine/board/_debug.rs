@@ -11,8 +11,8 @@ impl std::fmt::Debug for Board {
         for piece in Piece::ALL {
             let symbol = piece.symbol();
             let bitboard = self.bitboards[piece];
-            for index in bitboard.get_indexes() {
-                chars[index as usize] = symbol;
+            for tile in bitboard.get_tiles() {
+                chars[tile.get_value() as usize] = symbol;
             }
         }
 
