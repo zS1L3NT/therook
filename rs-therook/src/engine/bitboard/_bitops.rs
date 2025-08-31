@@ -1,18 +1,6 @@
 use super::*;
 use std::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
 
-impl Into<u64> for Bitboard {
-    fn into(self) -> u64 {
-        self.0
-    }
-}
-
-impl From<u64> for Bitboard {
-    fn from(value: u64) -> Self {
-        Bitboard(value)
-    }
-}
-
 impl<T: Into<u64>> BitAnd<T> for Bitboard {
     type Output = Self;
     fn bitand(self, rhs: T) -> Self::Output {

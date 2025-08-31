@@ -1,29 +1,23 @@
 mod _index;
 mod _pieces;
+mod color;
+mod r#type;
 
 pub use _pieces::*;
+pub use color::*;
+pub use r#type::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Piece(u8);
 
 impl Piece {
-    pub const TEAM_MASK: u8 = 0b100000;
-    pub const TYPE_MASK: u8 = 0b011111;
-    pub const KING_MASK: u8 = 0b010000;
-    pub const ORTHOGONAL_MASK: u8 = 0b001000;
-    pub const DIAGONAL_MASK: u8 = 0b000100;
-    pub const KNIGHT_MASK: u8 = 0b000010;
-    pub const PAWN_MASK: u8 = 0b000001;
-
-    pub const WHITE: u8 = 1 << 5;
-    pub const BLACK: u8 = 0;
-
-    pub const KING: u8 = 1 << 4;
-    pub const QUEEN: u8 = Self::BISHOP | Self::ROOK;
-    pub const ROOK: u8 = 1 << 3;
-    pub const BISHOP: u8 = 1 << 2;
-    pub const KNIGHT: u8 = 1 << 1;
-    pub const PAWN: u8 = 1;
+    pub const COLOR_MASK: u8 = 1 << 5;
+    pub const TYPE_MASK: u8 = !(1 << 5);
+    pub const KING_MASK: u8 = 1 << 4;
+    pub const ORTHOGONAL_MASK: u8 = 1 << 3;
+    pub const DIAGONAL_MASK: u8 = 1 << 2;
+    pub const KNIGHT_MASK: u8 = 1 << 1;
+    pub const PAWN_MASK: u8 = 1 << 0;
 
     pub const ALL: [Piece; 12] = [
         WHITE_KING,
@@ -40,32 +34,30 @@ impl Piece {
         BLACK_PAWN,
     ];
 
-    pub fn from(piece: u8) -> Self {
-        Piece(piece)
+    pub fn get_color(&self) -> PieceColor {
+        (self.0 & Self::COLOR_MASK >> 5).into()
     }
 
-    pub fn get_team(&self) -> u8 {
-        self.0 & Self::TEAM_MASK
-    }
-
-    pub fn get_type(&self) -> u8 {
-        self.0 & Self::TYPE_MASK
+    pub fn get_type(&self) -> PieceType {
+        (self.0 & Self::TYPE_MASK).into()
     }
 
     pub fn is_orthogonal_slider(&self) -> bool {
-        self.0 & Self::ORTHOGONAL_MASK != 0
+        (self.0 & Self::ORTHOGONAL_MASK) != 0
     }
 
     pub fn is_diagonal_slider(&self) -> bool {
-        self.0 & Self::DIAGONAL_MASK != 0
+        (self.0 & Self::DIAGONAL_MASK) != 0
     }
 
     pub fn is_slider(&self) -> bool {
-        self.0 & (Self::ORTHOGONAL_MASK | Self::DIAGONAL_MASK) != 0
+        (self.0 & (Self::ORTHOGONAL_MASK | Self::DIAGONAL_MASK)) != 0
     }
+}
 
-    pub fn symbol(&self) -> char {
-        match *self {
+impl Into<char> for Piece {
+    fn into(self) -> char {
+        match self {
             WHITE_KING => '\u{265A}',
             WHITE_QUEEN => '\u{265B}',
             WHITE_ROOK => '\u{265C}',
@@ -78,7 +70,7 @@ impl Piece {
             BLACK_BISHOP => '\u{2657}',
             BLACK_KNIGHT => '\u{2658}',
             BLACK_PAWN => '\u{2659}',
-            _ => panic!("Invalid piece type"),
+            _ => panic!("Invalid piece"),
         }
     }
 }

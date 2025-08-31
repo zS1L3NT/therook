@@ -9,10 +9,9 @@ impl std::fmt::Debug for Board {
         let mut chars: [char; 64] = [' '; 64];
 
         for piece in Piece::ALL {
-            let symbol = piece.symbol();
             let bitboard = self.bitboards[piece];
             for tile in bitboard.get_tiles() {
-                chars[tile.get_value() as usize] = symbol;
+                chars[Into::<u8>::into(tile) as usize] = piece.into();
             }
         }
 

@@ -14,10 +14,6 @@ impl Bitboard {
         Bitboard(0)
     }
 
-    pub fn from(bitboard: u64) -> Self {
-        Bitboard(bitboard)
-    }
-
     pub fn is_empty(&self) -> bool {
         self.0 == 0
     }
@@ -48,5 +44,17 @@ impl Into<Tile> for Bitboard {
         }
 
         return Tile::from(self.0.trailing_zeros() as u8);
+    }
+}
+
+impl Into<u64> for Bitboard {
+    fn into(self) -> u64 {
+        self.0
+    }
+}
+
+impl From<u64> for Bitboard {
+    fn from(value: u64) -> Self {
+        Bitboard(value)
     }
 }

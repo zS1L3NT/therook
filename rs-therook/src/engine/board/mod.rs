@@ -11,7 +11,7 @@ use therook::bitboard;
 pub struct Board {
     // From FEN
     pub bitboards: [Bitboard; 12],
-    pub turn: Team,
+    pub turn: PieceColor,
     pub castling: Castling,
     pub enpassant: Bitboard,
     pub halfmove: u8,
@@ -26,7 +26,7 @@ impl Board {
     pub fn new() -> Self {
         Board {
             bitboards: [Bitboard::new(); 12],
-            turn: Team::White,
+            turn: PieceColor::White,
             castling: Castling::new(),
             enpassant: Bitboard::new(),
             halfmove: 0,
