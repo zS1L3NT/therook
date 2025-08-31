@@ -10,6 +10,7 @@ const PROMOTE_BISHOP: u8 = 6;
 const PROMOTE_KNIGHT: u8 = 7;
 
 #[repr(u8)]
+#[derive(PartialEq, Eq)]
 pub enum MoveFlag {
     None = NONE,
     EnPassant = EN_PASSANT,

@@ -4,6 +4,7 @@ const WHITE: u8 = 1;
 const BLACK: u8 = 0;
 
 #[repr(u8)]
+#[derive(PartialEq, Eq)]
 pub enum PieceColor {
     White = WHITE,
     Black = BLACK,
