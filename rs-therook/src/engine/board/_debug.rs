@@ -6,22 +6,13 @@ impl std::fmt::Debug for Board {
 
         let mut lines = String::new();
 
-        let mut chars: [char; 64] = [' '; 64];
-
-        for piece in Piece::ALL {
-            let bitboard = self.bitboards[piece];
-            for tile in bitboard.get_tiles() {
-                chars[Into::<u8>::into(tile) as usize] = piece.into();
-            }
-        }
-
         lines.push_str(&"  ╔═══╦═══╦═══╦═══╦═══╦═══╦═══╦═══╗\n");
         for rank in (0..8).rev() {
             lines.push_str(&format!(
                 "{} ║{}\n",
                 format!("{}", vec![1, 2, 3, 4, 5, 6, 7, 8][rank]),
                 (rank * 8..rank * 8 + 8)
-                    .map(|i| chars[i])
+                    .map(|i| self.squares[i].map(|p| p.into()).unwrap_or(' '))
                     .fold(String::new(), |acc, el| format!("{acc} {el} ║")),
             ));
 

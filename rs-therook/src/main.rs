@@ -13,7 +13,7 @@ fn main() {
 
     std::thread::sleep(std::time::Duration::from_secs(1));
 
-    board.make_move(Move::new(tile!(E2), tile!(E4), MoveFlag::PawnDash));
+    board.make_move(Move::new(tile!(E2), tile!(E7), MoveFlag::None));
 
     println!("{:?}", board);
 }

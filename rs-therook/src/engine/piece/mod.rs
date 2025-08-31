@@ -1,5 +1,5 @@
-mod _index;
 mod _pieces;
+mod _debug;
 mod color;
 mod r#type;
 
@@ -33,6 +33,10 @@ impl Piece {
         BLACK_KNIGHT,
         BLACK_PAWN,
     ];
+
+    pub fn new(color: PieceColor, r#type: PieceType) -> Self {
+        Piece(Into::<u8>::into(color) | Into::<u8>::into(r#type))
+    }
 
     pub fn get_color(&self) -> PieceColor {
         (self.0 & Self::COLOR_MASK >> 5).into()
