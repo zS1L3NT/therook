@@ -1,11 +1,13 @@
-pub mod bitboard;
-pub mod board;
-pub mod r#move;
-pub mod piece;
-pub mod tile;
+mod bitboard;
+mod board;
+mod computed;
+mod r#move;
+mod piece;
+mod tile;
 
 pub use bitboard::*;
 pub use board::*;
+pub use computed::*;
 pub use r#move::*;
 pub use piece::*;
 pub use tile::*;

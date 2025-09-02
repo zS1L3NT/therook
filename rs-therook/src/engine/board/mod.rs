@@ -1,7 +1,7 @@
+mod _calculate_moves;
 mod _debug;
 mod _index;
 mod _make_move;
-mod _moves;
 mod _undo_move;
 mod castling;
 
@@ -18,6 +18,9 @@ pub struct Board {
     pub halfmove: u8,
     pub fullmove: u8,
 
+    // Pre-computed data
+    pub computed: Computed,
+
     // Extra state of the board
     pub squares: [Option<Piece>; 64],
     pub captured: Option<Piece>,
@@ -32,6 +35,8 @@ impl Board {
             enpassant: Bitboard::new(),
             halfmove: 0,
             fullmove: 1,
+
+            computed: Computed::new(),
 
             squares: [None; 64],
             captured: None,

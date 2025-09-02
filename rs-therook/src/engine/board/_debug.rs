@@ -1,11 +1,13 @@
+use therook::timed;
+
 use super::*;
 
 impl std::fmt::Debug for Board {
+    #[timed(Board)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let now = std::time::Instant::now();
-
         let mut lines = String::new();
 
+        lines.push_str(&format!("Board: {}\n", "<FEN>"));
         lines.push_str(&"  ╔═══╦═══╦═══╦═══╦═══╦═══╦═══╦═══╗\n");
         for rank in (0..8).rev() {
             lines.push_str(&format!(
@@ -22,11 +24,6 @@ impl std::fmt::Debug for Board {
         }
         lines.push_str(&"  ╚═══╩═══╩═══╩═══╩═══╩═══╩═══╩═══╝\n");
         lines.push_str(&"    A   B   C   D   E   F   G   H  \n");
-
-        println!(
-            "Stringified board in {} nanoseconds",
-            now.elapsed().as_nanos()
-        );
 
         write!(f, "{}", lines)
     }

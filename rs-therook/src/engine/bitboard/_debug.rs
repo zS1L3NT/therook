@@ -1,12 +1,13 @@
 use super::*;
 use colored::Colorize;
+use therook::timed;
 
 impl std::fmt::Debug for Bitboard {
+    #[timed(Bitboard)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let now = std::time::Instant::now();
-
         let mut lines = String::new();
 
+        lines.push_str(&format!("Bitboard: {}\n", Into::<u64>::into(*self)));
         lines.push_str(&"  ╔═══╦═══╦═══╦═══╦═══╦═══╦═══╦═══╗\n");
         for rank in (0..8).rev() {
             lines.push_str(&format!(
@@ -27,11 +28,6 @@ impl std::fmt::Debug for Bitboard {
         }
         lines.push_str(&"  ╚═══╩═══╩═══╩═══╩═══╩═══╩═══╩═══╝\n");
         lines.push_str(&"    A   B   C   D   E   F   G   H  \n");
-
-        println!(
-            "Stringified bitboard in {} nanoseconds",
-            now.elapsed().as_nanos()
-        );
 
         write!(f, "{}", lines)
     }
