@@ -1,8 +1,8 @@
 mod _bit;
 mod _debug;
-mod _rank_file;
+mod _utils;
 
-pub use _rank_file::*;
+pub use _utils::*;
 
 use super::*;
 

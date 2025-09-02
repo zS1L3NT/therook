@@ -39,7 +39,7 @@ impl Piece {
     }
 
     pub fn get_color(&self) -> PieceColor {
-        (self.0 & Self::COLOR_MASK >> 5).into()
+        ((self.0 & Self::COLOR_MASK) >> 5).into()
     }
 
     pub fn get_type(&self) -> PieceType {
