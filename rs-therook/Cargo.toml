@@ -8,6 +8,3 @@ proc-macro = true
 
 [dependencies]
 colored = "3.0.0"
-quote = "1.0.40"
-regex = "1.11.2"
-syn = { version = "2", features = ["full"] }

@@ -59,4 +59,57 @@ impl Bitboard {
     pub fn north_west(self) -> Bitboard {
         (self << 7u64) & !FILE_H
     }
+
+    pub fn clockwise(self) -> Bitboard {
+        self.flip_diagonal_a1_h8().flip_vertical()
+    }
+
+    pub fn anticlockwise(self) -> Bitboard {
+        self.flip_vertical().flip_diagonal_a1_h8()
+    }
+
+    fn flip_diagonal_a1_h8(self) -> Bitboard {
+        let k1 = 0x5500550055005500u64;
+        let k2 = 0x3333000033330000u64;
+        let k4 = 0x0f0f0f0f00000000u64;
+        let mut x = self.0;
+        let mut t = k4 & (x ^ (x << 28));
+        x ^= t ^ (t >> 28);
+        t = k2 & (x ^ (x << 14));
+        x ^= t ^ (t >> 14);
+        t = k1 & (x ^ (x << 7));
+        x ^= t ^ (t >> 7);
+        x.into()
+    }
+
+    fn flip_vertical(self) -> Bitboard {
+        let k1 = 0x00FF00FF00FF00FFu64;
+        let k2 = 0x0000FFFF0000FFFFu64;
+        let mut x = self.0;
+        x = ((x >> 8) & k1) | ((x & k1) << 8);
+        x = ((x >> 16) & k2) | ((x & k2) << 16);
+        x = (x >> 32) | (x << 32);
+        x.into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn clockwise() {
+        assert_eq!(
+            Bitboard::from(0xFF888C92610000),
+            Bitboard::from(0x1E2222120E0A1222).clockwise()
+        );
+    }
+
+    #[test]
+    fn anticlockwise() {
+        assert_eq!(
+            Bitboard::from(0x86493111FF00),
+            Bitboard::from(0x1E2222120E0A1222).anticlockwise()
+        );
+    }
 }

@@ -1,7 +1,7 @@
 mod engine;
 
 use engine::{Board, Move, MoveFlag};
-use therook::tile;
+pub use therook::*;
 
 fn main() {
     let mut board = Board::initial();
@@ -16,4 +16,14 @@ fn main() {
     board.make_move(Move::new(tile!(E2), tile!(E7), MoveFlag::None));
 
     println!("{:?}", board);
+}
+
+#[macro_export]
+macro_rules! timed {
+    ($label:expr, $expr:expr) => {{
+        let now = std::time::Instant::now();
+        let result = { $expr };
+        println!("{} in {} ns", $label, now.elapsed().as_nanos());
+        result
+    }};
 }

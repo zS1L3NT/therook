@@ -7,7 +7,6 @@ mod castling;
 
 use super::*;
 use castling::*;
-use therook::{bitboard, tile};
 
 pub struct Board {
     // From FEN
