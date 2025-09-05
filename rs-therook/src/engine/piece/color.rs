@@ -19,24 +19,24 @@ impl PieceColor {
     }
 }
 
-impl Into<char> for PieceColor {
-    fn into(self) -> char {
-        match self {
+impl From<PieceColor> for char {
+    fn from(color: PieceColor) -> Self {
+        match color {
             White => 'w',
             Black => 'b',
         }
     }
 }
 
-impl Into<u8> for PieceColor {
-    fn into(self) -> u8 {
-        self as u8
+impl From<PieceColor> for u8 {
+    fn from(color: PieceColor) -> Self {
+        color as u8
     }
 }
 
 impl From<u8> for PieceColor {
-    fn from(value: u8) -> Self {
-        match value {
+    fn from(u8: u8) -> Self {
+        match u8 {
             WHITE => White,
             BLACK => Black,
             _ => panic!("Unknown team"),

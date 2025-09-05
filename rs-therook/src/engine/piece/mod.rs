@@ -1,3 +1,4 @@
+mod _bit;
 mod _debug;
 mod _pieces;
 mod color;
@@ -55,9 +56,9 @@ impl Piece {
     }
 }
 
-impl Into<char> for Piece {
-    fn into(self) -> char {
-        match self {
+impl From<Piece> for char {
+    fn from(piece: Piece) -> Self {
+        match piece {
             WHITE_KING => '\u{265A}',
             WHITE_QUEEN => '\u{265B}',
             WHITE_ROOK => '\u{265C}',
@@ -72,12 +73,5 @@ impl Into<char> for Piece {
             BLACK_PAWN => '\u{2659}',
             _ => panic!("Invalid piece"),
         }
-    }
-}
-
-impl std::ops::BitOr<PieceType> for PieceColor {
-    type Output = Piece;
-    fn bitor(self, rhs: PieceType) -> Piece {
-        Piece(Into::<u8>::into(self) << 5 | Into::<u8>::into(rhs))
     }
 }

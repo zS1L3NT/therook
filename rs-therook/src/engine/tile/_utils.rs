@@ -15,9 +15,9 @@ impl Tile {
         let left = (rank - file) * 8;
 
         Bitboard::from(if left >= 0 {
-            Into::<u64>::into(DIAGONAL_MAIN) << left
+            u64::from(DIAGONAL_MAIN) << left
         } else {
-            Into::<u64>::into(DIAGONAL_MAIN) >> -left
+            u64::from(DIAGONAL_MAIN) >> -left
         })
     }
 
@@ -27,9 +27,9 @@ impl Tile {
         let right = (7 - rank - file) * 8;
 
         Bitboard::from(if right >= 0 {
-            Into::<u64>::into(ANTIDIAG_MAIN) >> right
+            u64::from(ANTIDIAG_MAIN) >> right
         } else {
-            Into::<u64>::into(ANTIDIAG_MAIN) << -right
+            u64::from(ANTIDIAG_MAIN) << -right
         })
     }
 }

@@ -67,8 +67,7 @@ impl AttackMasks {
                     ^ (o.reverse_bits() - _2 * s.reverse_bits()).reverse_bits())
                 .0 as u64;
                 let single_rank_files = single_rank.wrapping_mul(FILE_A.into());
-                let single_file_ranks =
-                    Into::<u64>::into(Bitboard::from(single_rank_files).clockwise());
+                let single_file_ranks = u64::from(Bitboard::from(single_rank_files).clockwise());
 
                 computed.ranks[index][occupancy] =
                     (RANK_1 << (index & 56) as u64) & single_rank_files;
@@ -101,7 +100,7 @@ impl AttackMasks {
 
     pub fn get(&self, piece: Piece, tile: Tile, occupancy: Bitboard) -> Bitboard {
         let color = piece.get_color();
-        let index = Into::<u8>::into(tile) as usize;
+        let index = u8::from(tile) as usize;
 
         match piece.get_type() {
             PieceType::King => self.kings[index],
@@ -134,7 +133,7 @@ impl AttackMasks {
 
     // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#Kindergarten_Bitboards
     fn kindergarten(bitboard: Bitboard) -> usize {
-        (Into::<u64>::into(bitboard).wrapping_mul(Self::FILE_B) >> 58) as usize
+        (u64::from(bitboard).wrapping_mul(Self::FILE_B) >> 58) as usize
     }
 }
 
@@ -351,14 +350,14 @@ mod tests {
             let diagonal_occupancies = (1..=diagonal.len())
                 .flat_map(|l| diagonal.iter().combinations(l))
                 .map(|ts| ts.iter().fold(Bitboard::new(), |acc, el| acc | **el))
-                .filter(|b| *b & bitboard != Bitboard::new())
+                .filter(|b| !(*b & bitboard).is_empty())
                 .collect::<Vec<_>>();
 
             let antidiag = tile.get_antidiag().get_tiles();
             let antidiag_occupancies = (1..=antidiag.len())
                 .flat_map(|l| antidiag.iter().combinations(l))
                 .map(|ts| ts.iter().fold(Bitboard::new(), |acc, el| acc | **el))
-                .filter(|b| *b & bitboard != Bitboard::new())
+                .filter(|b| !(*b & bitboard).is_empty())
                 .collect::<Vec<_>>();
 
             for diagonal_occupancy in &diagonal_occupancies {
@@ -378,7 +377,7 @@ mod tests {
         let mut expected = Bitboard::new();
 
         for direction in directions {
-            let mut target_index = Into::<u8>::into(tile) as i8;
+            let mut target_index = u8::from(tile) as i8;
             let mut target_rank = target_index >> 3;
             let mut target_file = target_index & 7;
 
@@ -392,7 +391,7 @@ mod tests {
 
                 expected |= target_bitboard;
 
-                if occupancy & target_bitboard != Bitboard::new() {
+                if !(occupancy & target_bitboard).is_empty() {
                     break;
                 }
             }

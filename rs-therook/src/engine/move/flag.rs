@@ -22,15 +22,15 @@ pub enum MoveFlag {
     PromoteKnight = PROMOTE_KNIGHT,
 }
 
-impl Into<u8> for MoveFlag {
-    fn into(self) -> u8 {
-        self as u8
+impl From<MoveFlag> for u8 {
+    fn from(flag: MoveFlag) -> Self {
+        flag as u8
     }
 }
 
 impl From<u8> for MoveFlag {
-    fn from(value: u8) -> Self {
-        match value {
+    fn from(u8: u8) -> Self {
+        match u8 {
             NONE => None,
             EN_PASSANT => EnPassant,
             CASTLE => Castle,

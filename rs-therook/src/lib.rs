@@ -31,7 +31,7 @@ pub fn bitboard(input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn tile(input: TokenStream) -> TokenStream {
-    format!("Into::<crate::engine::Tile>::into({})", bitboard(input))
+    format!("crate::engine::Tile::from({})", bitboard(input))
         .parse()
         .unwrap()
 }

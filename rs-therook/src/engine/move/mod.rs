@@ -14,9 +14,9 @@ impl Move {
 
     pub fn new(start: Tile, end: Tile, flag: MoveFlag) -> Self {
         Move(
-            (Into::<u8>::into(start) as u16) << 10
-                | (Into::<u8>::into(end) as u16) << 4
-                | Into::<u8>::into(flag) as u16,
+            (u8::from(start) as u16) << 10
+                | (u8::from(end) as u16) << 4
+                | u8::from(flag) as u16,
         )
     }
 

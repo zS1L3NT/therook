@@ -36,12 +36,12 @@ impl std::ops::IndexMut<Piece> for [Bitboard; 12] {
 impl std::ops::Index<Tile> for [Option<Piece>; 64] {
     type Output = Option<Piece>;
     fn index(&self, tile: Tile) -> &Self::Output {
-        &self[Into::<u8>::into(tile) as usize]
+        &self[u8::from(tile) as usize]
     }
 }
 
 impl std::ops::IndexMut<Tile> for [Option<Piece>; 64] {
     fn index_mut(&mut self, tile: Tile) -> &mut Self::Output {
-        &mut self[Into::<u8>::into(tile) as usize]
+        &mut self[u8::from(tile) as usize]
     }
 }

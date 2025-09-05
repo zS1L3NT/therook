@@ -6,7 +6,7 @@ impl std::fmt::Debug for Bitboard {
         timed!("bitboard stringified", {
             let mut lines = String::new();
 
-            lines.push_str(&format!("Bitboard: {}\n", Into::<u64>::into(*self)));
+            lines.push_str(&format!("Bitboard: {}\n", u64::from(*self)));
             lines.push_str(&"  ╔═══╦═══╦═══╦═══╦═══╦═══╦═══╦═══╗\n");
             for rank in (0..8).rev() {
                 lines.push_str(&format!(

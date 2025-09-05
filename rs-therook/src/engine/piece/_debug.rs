@@ -20,7 +20,7 @@ impl std::fmt::Debug for Piece {
                 BLACK_PAWN => "BlackPawn",
                 _ => panic!("Unknown piece"),
             },
-            Into::<char>::into(*self)
+            char::from(*self)
         )
     }
 }

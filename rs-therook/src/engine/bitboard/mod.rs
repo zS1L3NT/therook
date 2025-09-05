@@ -31,36 +31,20 @@ impl Bitboard {
     }
 }
 
-impl Into<Tile> for Bitboard {
-    fn into(self) -> Tile {
-        if self.is_empty() {
-            println!("{:?}", self);
-            panic!("Cannot call Bitboard::get_tile(&self) when bitboard is empty!");
-        }
-
-        if self.0 & self.0 - 1 != 0 {
-            println!("{:?}", self);
-            panic!("Cannot call Bitboard::get_tile(&self) when bitboard has more than one bit!");
-        }
-
-        return Tile::from(self.0.trailing_zeros() as u8);
-    }
-}
-
-impl Into<u64> for Bitboard {
-    fn into(self) -> u64 {
-        self.0
+impl From<Bitboard> for u64 {
+    fn from(bitboard: Bitboard) -> Self {
+        bitboard.0
     }
 }
 
 impl From<Tile> for Bitboard {
     fn from(tile: Tile) -> Self {
-        Bitboard(1 << Into::<u8>::into(tile))
+        Bitboard(1 << u8::from(tile))
     }
 }
 
 impl From<u64> for Bitboard {
-    fn from(value: u64) -> Self {
-        Bitboard(value)
+    fn from(u64: u64) -> Self {
+        Bitboard(u64)
     }
 }

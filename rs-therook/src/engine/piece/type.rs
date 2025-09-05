@@ -18,15 +18,15 @@ pub enum PieceType {
     Pawn = PAWN,
 }
 
-impl Into<u8> for PieceType {
-    fn into(self) -> u8 {
-        self as u8
+impl From<PieceType> for u8 {
+    fn from(r#type: PieceType) -> Self {
+        r#type as u8
     }
 }
 
 impl From<u8> for PieceType {
-    fn from(value: u8) -> Self {
-        match value {
+    fn from(u8: u8) -> Self {
+        match u8 {
             KING => King,
             QUEEN => Queen,
             ROOK => Rook,
