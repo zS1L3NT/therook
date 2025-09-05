@@ -1,6 +1,5 @@
 mod _bit;
 mod _debug;
-mod _utils;
 
 use super::*;
 

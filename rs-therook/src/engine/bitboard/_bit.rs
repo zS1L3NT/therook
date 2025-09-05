@@ -25,7 +25,7 @@ impl<T: Into<u64>> BitOr<T> for Bitboard {
 impl BitOr<Tile> for Bitboard {
     type Output = Self;
     fn bitor(self, rhs: Tile) -> Self::Output {
-        (self.0 | Bitboard::from(rhs).0).into()
+        Bitboard::from(self.0 | (1 << u8::from(rhs)))
     }
 }
 

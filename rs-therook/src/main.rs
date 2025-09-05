@@ -1,6 +1,6 @@
 mod engine;
 
-use engine::{Board, Move, MoveFlag};
+use engine::*;
 pub use therook::*;
 
 fn main() {

@@ -36,11 +36,11 @@ impl Piece {
     ];
 
     pub fn get_color(&self) -> PieceColor {
-        (self.0 >> 5).into()
+        PieceColor::from(self.0 >> 5)
     }
 
     pub fn get_type(&self) -> PieceType {
-        (self.0 & Self::TYPE_MASK).into()
+        PieceType::from(self.0 & Self::TYPE_MASK)
     }
 
     pub fn is_orthogonal_slider(&self) -> bool {

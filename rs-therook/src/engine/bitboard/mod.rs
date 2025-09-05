@@ -27,7 +27,7 @@ impl Bitboard {
             bitboard &= bitboard - 1;
         }
 
-        return tiles;
+        tiles
     }
 }
 

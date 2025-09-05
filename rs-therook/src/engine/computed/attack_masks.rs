@@ -2,6 +2,8 @@ use super::*;
 use std::num::Wrapping;
 
 pub struct AttackMasks {
+    line_masks: LineMasks,
+
     kings: [Bitboard; 64],
     knights: [Bitboard; 64],
     white_pawns: [Bitboard; 64],
@@ -17,7 +19,9 @@ impl AttackMasks {
     const FILE_B: u64 = 0x0202020202020202;
 
     pub fn new() -> Self {
-        let mut computed = AttackMasks {
+        let mut masks = AttackMasks {
+            line_masks: LineMasks::new(),
+
             kings: [Bitboard::new(); 64],
             knights: [Bitboard::new(); 64],
             white_pawns: [Bitboard::new(); 64],
@@ -34,9 +38,9 @@ impl AttackMasks {
             let bitboard = Bitboard::from(tile);
 
             // https://www.chessprogramming.org/King_Pattern#by_Calculation
-            computed.kings[index] |= bitboard.west() | bitboard | bitboard.east();
-            computed.kings[index] |= computed.kings[index].north() | computed.kings[index].south();
-            computed.kings[index] ^= bitboard;
+            masks.kings[index] |= bitboard.west() | bitboard | bitboard.east();
+            masks.kings[index] |= masks.kings[index].north() | masks.kings[index].south();
+            masks.kings[index] ^= bitboard;
 
             // https://www.chessprogramming.org/Knight_Pattern#Multiple_Knight_Attacks
             let east_one = bitboard.east();
@@ -46,12 +50,12 @@ impl AttackMasks {
             let rank_one = east_one | west_one;
             let rank_two = east_two | west_two;
 
-            computed.knights[index] =
+            masks.knights[index] =
                 (rank_one << 16u64) | (rank_one >> 16u64) | (rank_two << 8u64) | (rank_two >> 8u64);
 
             // https://www.chessprogramming.org/Pawn_Attacks_(Bitboards)#Attacks_2
-            computed.white_pawns[index] = bitboard.north_east() | bitboard.north_west();
-            computed.black_pawns[index] = bitboard.south_east() | bitboard.south_west();
+            masks.white_pawns[index] = bitboard.north_east() | bitboard.north_west();
+            masks.black_pawns[index] = bitboard.south_east() | bitboard.south_west();
 
             let rank = index >> 3;
             let file = index & 7;
@@ -69,24 +73,23 @@ impl AttackMasks {
                 let single_rank_files = single_rank.wrapping_mul(FILE_A.into());
                 let single_file_ranks = u64::from(Bitboard::from(single_rank_files).clockwise());
 
-                computed.ranks[index][occupancy] =
-                    (RANK_1 << (index & 56) as u64) & single_rank_files;
+                masks.ranks[index][occupancy] = masks.line_masks.ranks[index] & single_rank_files;
 
                 // Generated through 2 days of blood sweat and tears worth of testing
                 let file_index = rank + ((7 - file) * 8);
 
-                computed.files[file_index][occupancy] =
+                masks.files[file_index][occupancy] =
                     (FILE_A << (index >> 3) as u64) & single_file_ranks;
 
                 // https://www.chessprogramming.org/On_an_empty_Board#By_Calculation_3
-                computed.diagonals[index][occupancy] = {
+                masks.diagonals[index][occupancy] = {
                     let diagonal = 8 * (index & 7) as i32 - (index & 56) as i32;
                     let north = (-diagonal & (diagonal >> 31)) as u64;
                     let south = (diagonal & (-diagonal >> 31)) as u64;
                     ((DIAGONAL_MAIN >> south) << north) & single_rank_files
                 };
 
-                computed.antidiags[index][occupancy] = {
+                masks.antidiags[index][occupancy] = {
                     let diagonal = 56 - 8 * (index & 7) as i32 - (index & 56) as i32;
                     let north = (-diagonal & (diagonal >> 31)) as u64;
                     let south = (diagonal & (-diagonal >> 31)) as u64;
@@ -95,7 +98,7 @@ impl AttackMasks {
             }
         }
 
-        computed
+        masks
     }
 
     pub fn get(&self, piece: Piece, tile: Tile, occupancy: Bitboard) -> Bitboard {
@@ -109,16 +112,16 @@ impl AttackMasks {
                     | self.get(color | PieceType::Bishop, tile, occupancy)
             }
             PieceType::Rook => {
-                let rank = occupancy & tile.get_rank();
-                let file = occupancy & tile.get_file();
+                let rank = occupancy & self.line_masks.ranks[index];
+                let file = occupancy & self.line_masks.files[index];
                 let file = file.anticlockwise();
 
                 self.ranks[index][Self::kindergarten(rank)]
                     | self.files[index][Self::kindergarten(file)]
             }
             PieceType::Bishop => {
-                let diagonal = occupancy & tile.get_diagonal();
-                let antidiag = occupancy & tile.get_antidiag();
+                let diagonal = occupancy & self.line_masks.diagonals[index];
+                let antidiag = occupancy & self.line_masks.antidiags[index];
 
                 self.diagonals[index][Self::kindergarten(diagonal)]
                     | self.antidiags[index][Self::kindergarten(antidiag)]
@@ -144,7 +147,7 @@ mod tests {
 
     #[test]
     fn kings() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
@@ -186,13 +189,13 @@ mod tests {
                 expected |= bitboard << 7u64;
             }
 
-            assert_eq!(computed.get(WHITE_KING, tile, bitboard), expected);
+            assert_eq!(masks.get(WHITE_KING, tile, bitboard), expected);
         }
     }
 
     #[test]
     fn knights() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
@@ -234,13 +237,13 @@ mod tests {
                 expected |= bitboard << 6u64;
             }
 
-            assert_eq!(computed.get(WHITE_KNIGHT, tile, bitboard), expected);
+            assert_eq!(masks.get(WHITE_KNIGHT, tile, bitboard), expected);
         }
     }
 
     #[test]
     fn white_pawns() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 8..55 {
             let tile = Tile::from(index);
@@ -256,13 +259,13 @@ mod tests {
                 expected |= bitboard << 9u64
             }
 
-            assert_eq!(computed.get(WHITE_PAWN, tile, bitboard), expected);
+            assert_eq!(masks.get(WHITE_PAWN, tile, bitboard), expected);
         }
     }
 
     #[test]
     fn black_pawns() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 8..55 {
             let tile = Tile::from(index);
@@ -277,27 +280,28 @@ mod tests {
                 expected |= bitboard >> 7u64
             }
 
-            assert_eq!(computed.get(BLACK_PAWN, tile, bitboard), expected);
+            assert_eq!(masks.get(BLACK_PAWN, tile, bitboard), expected);
         }
     }
 
     #[test]
     fn ranks_files_alone() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(tile);
             assert_eq!(
-                (tile.get_rank() | tile.get_file()) ^ bitboard,
-                computed.get(WHITE_ROOK, tile, bitboard)
+                (masks.line_masks.ranks[index as usize] | masks.line_masks.files[index as usize])
+                    ^ bitboard,
+                masks.get(WHITE_ROOK, tile, bitboard)
             );
         }
     }
 
     #[test]
     fn ranks_files_with_pieces() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
@@ -316,7 +320,7 @@ mod tests {
                         | Bitboard::from(file_occupancy).clockwise() << (index & 7);
 
                     assert_eq!(
-                        computed.get(WHITE_ROOK, tile, occupancy),
+                        masks.get(WHITE_ROOK, tile, occupancy),
                         walk_directions(vec![8, 1, -8, -1], tile, occupancy)
                     );
                 }
@@ -326,34 +330,36 @@ mod tests {
 
     #[test]
     fn diagonals_antidiags_alone() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(tile);
             assert_eq!(
-                (tile.get_diagonal() | tile.get_antidiag()) ^ bitboard,
-                computed.get(WHITE_BISHOP, tile, bitboard)
+                (masks.line_masks.diagonals[index as usize]
+                    | masks.line_masks.antidiags[index as usize])
+                    ^ bitboard,
+                masks.get(WHITE_BISHOP, tile, bitboard)
             );
         }
     }
 
     #[test]
     fn diagonals_antidiags_with_pieces() {
-        let computed = AttackMasks::new();
+        let masks = AttackMasks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(tile);
 
-            let diagonal = tile.get_diagonal().get_tiles();
+            let diagonal = masks.line_masks.diagonals[index as usize].get_tiles();
             let diagonal_occupancies = (1..=diagonal.len())
                 .flat_map(|l| diagonal.iter().combinations(l))
                 .map(|ts| ts.iter().fold(Bitboard::new(), |acc, el| acc | **el))
                 .filter(|b| !(*b & bitboard).is_empty())
                 .collect::<Vec<_>>();
 
-            let antidiag = tile.get_antidiag().get_tiles();
+            let antidiag = masks.line_masks.antidiags[index as usize].get_tiles();
             let antidiag_occupancies = (1..=antidiag.len())
                 .flat_map(|l| antidiag.iter().combinations(l))
                 .map(|ts| ts.iter().fold(Bitboard::new(), |acc, el| acc | **el))
@@ -365,7 +371,7 @@ mod tests {
                     let occupancy = (*diagonal_occupancy | *antidiag_occupancy) ^ bitboard;
 
                     assert_eq!(
-                        computed.get(WHITE_BISHOP, tile, occupancy),
+                        masks.get(WHITE_BISHOP, tile, occupancy),
                         walk_directions(vec![7, 9, -7, -9], tile, occupancy),
                     );
                 }
