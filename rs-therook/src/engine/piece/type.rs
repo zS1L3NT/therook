@@ -18,6 +18,20 @@ pub enum PieceType {
     Pawn = PAWN,
 }
 
+impl PieceType {
+    pub fn is_orthogonal_slider(self) -> bool {
+        self == Queen || self == Rook
+    }
+
+    pub fn is_diagonal_slider(self) -> bool {
+        self == Queen || self == Bishop
+    }
+
+    pub fn is_slider(self) -> bool {
+        self == Queen || self == Rook || self == Bishop
+    }
+}
+
 impl From<PieceType> for u8 {
     fn from(r#type: PieceType) -> Self {
         r#type as u8

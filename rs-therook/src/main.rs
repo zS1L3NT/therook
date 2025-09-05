@@ -5,17 +5,16 @@ pub use therook::*;
 
 fn main() {
     let mut board = Board::initial();
-    println!("{:?}", board);
+    println!("{board:?}");
+
+    board.move_piece(tile!(E2), tile!(E4), WHITE_PAWN);
+    board.move_piece(tile!(D7), tile!(D5), BLACK_PAWN);
+
+    println!("{board:?}");
 
     for r#move in board.calculate_moves() {
-        println!("{:?}", r#move);
+        println!("{move:?}");
     }
-
-    std::thread::sleep(std::time::Duration::from_secs(1));
-
-    board.make_move(Move::new(tile!(E2), tile!(E7), MoveFlag::None));
-
-    println!("{:?}", board);
 }
 
 #[macro_export]

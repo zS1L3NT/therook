@@ -101,15 +101,28 @@ impl AttackMasks {
         masks
     }
 
-    pub fn get(&self, piece: Piece, tile: Tile, occupancy: Bitboard) -> Bitboard {
-        let color = piece.get_color();
+    pub fn get(
+        &self,
+        color: PieceColor,
+        r#type: PieceType,
+        tile: Tile,
+        occupancy: Bitboard,
+    ) -> Bitboard {
         let index = u8::from(tile) as usize;
 
-        match piece.get_type() {
+        match r#type {
             PieceType::King => self.kings[index],
             PieceType::Queen => {
-                self.get(color | PieceType::Rook, tile, occupancy)
-                    | self.get(color | PieceType::Bishop, tile, occupancy)
+                let rank = occupancy & self.line_masks.ranks[index];
+                let file = occupancy & self.line_masks.files[index];
+                let file = file.anticlockwise();
+                let diagonal = occupancy & self.line_masks.diagonals[index];
+                let antidiag = occupancy & self.line_masks.antidiags[index];
+
+                self.ranks[index][Self::kindergarten(rank)]
+                    | self.files[index][Self::kindergarten(file)]
+                    | self.diagonals[index][Self::kindergarten(diagonal)]
+                    | self.antidiags[index][Self::kindergarten(antidiag)]
             }
             PieceType::Rook => {
                 let rank = occupancy & self.line_masks.ranks[index];
@@ -189,7 +202,10 @@ mod tests {
                 expected |= bitboard << 7u64;
             }
 
-            assert_eq!(masks.get(WHITE_KING, tile, bitboard), expected);
+            assert_eq!(
+                masks.get(PieceColor::White, PieceType::King, tile, bitboard),
+                expected
+            );
         }
     }
 
@@ -237,7 +253,10 @@ mod tests {
                 expected |= bitboard << 6u64;
             }
 
-            assert_eq!(masks.get(WHITE_KNIGHT, tile, bitboard), expected);
+            assert_eq!(
+                masks.get(PieceColor::White, PieceType::Knight, tile, bitboard),
+                expected
+            );
         }
     }
 
@@ -259,7 +278,10 @@ mod tests {
                 expected |= bitboard << 9u64
             }
 
-            assert_eq!(masks.get(WHITE_PAWN, tile, bitboard), expected);
+            assert_eq!(
+                masks.get(PieceColor::White, PieceType::Pawn, tile, bitboard),
+                expected
+            );
         }
     }
 
@@ -280,7 +302,10 @@ mod tests {
                 expected |= bitboard >> 7u64
             }
 
-            assert_eq!(masks.get(BLACK_PAWN, tile, bitboard), expected);
+            assert_eq!(
+                masks.get(PieceColor::Black, PieceType::Pawn, tile, bitboard),
+                expected
+            );
         }
     }
 
@@ -294,7 +319,7 @@ mod tests {
             assert_eq!(
                 (masks.line_masks.ranks[index as usize] | masks.line_masks.files[index as usize])
                     ^ bitboard,
-                masks.get(WHITE_ROOK, tile, bitboard)
+                masks.get(PieceColor::White, PieceType::Rook, tile, bitboard)
             );
         }
     }
@@ -320,7 +345,7 @@ mod tests {
                         | Bitboard::from(file_occupancy).clockwise() << (index & 7);
 
                     assert_eq!(
-                        masks.get(WHITE_ROOK, tile, occupancy),
+                        masks.get(PieceColor::White, PieceType::Rook, tile, occupancy),
                         walk_directions(vec![8, 1, -8, -1], tile, occupancy)
                     );
                 }
@@ -339,7 +364,7 @@ mod tests {
                 (masks.line_masks.diagonals[index as usize]
                     | masks.line_masks.antidiags[index as usize])
                     ^ bitboard,
-                masks.get(WHITE_BISHOP, tile, bitboard)
+                masks.get(PieceColor::White, PieceType::Bishop, tile, bitboard)
             );
         }
     }
@@ -371,7 +396,7 @@ mod tests {
                     let occupancy = (*diagonal_occupancy | *antidiag_occupancy) ^ bitboard;
 
                     assert_eq!(
-                        masks.get(WHITE_BISHOP, tile, occupancy),
+                        masks.get(PieceColor::White, PieceType::Bishop, tile, occupancy),
                         walk_directions(vec![7, 9, -7, -9], tile, occupancy),
                     );
                 }

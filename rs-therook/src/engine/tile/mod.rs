@@ -32,6 +32,6 @@ impl From<Bitboard> for Tile {
             panic!("Cannot call Bitboard::get_tile(&self) when bitboard has more than one bit!");
         }
 
-        return Tile::from(u64.trailing_zeros() as u8);
+        Tile::from(u64.trailing_zeros() as u8)
     }
 }

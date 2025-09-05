@@ -18,25 +18,25 @@ impl Not for Tile {
 impl<T: Into<u8>> Shl<T> for Tile {
     type Output = Tile;
     fn shl(self, rhs: T) -> Self::Output {
-        (self.0 << rhs.into()).into()
+        (self.0 + rhs.into()).into()
     }
 }
 
 impl<T: Into<u8>> Shr<T> for Tile {
     type Output = Tile;
     fn shr(self, rhs: T) -> Self::Output {
-        (self.0 >> rhs.into()).into()
+        (self.0 - rhs.into()).into()
     }
 }
 
 impl<T: Into<u8>> ShlAssign<T> for Tile {
     fn shl_assign(&mut self, rhs: T) {
-        self.0 <<= rhs.into()
+        self.0 += rhs.into()
     }
 }
 
 impl<T: Into<u8>> ShrAssign<T> for Tile {
     fn shr_assign(&mut self, rhs: T) {
-        self.0 >>= rhs.into()
+        self.0 -= rhs.into()
     }
 }

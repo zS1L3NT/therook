@@ -33,6 +33,19 @@ impl std::ops::IndexMut<Piece> for [Bitboard; 12] {
     }
 }
 
+impl std::ops::Index<PieceColor> for [Bitboard; 2] {
+    type Output = Bitboard;
+    fn index(&self, color: PieceColor) -> &Self::Output {
+        &self[color as usize]
+    }
+}
+
+impl std::ops::IndexMut<PieceColor> for [Bitboard; 2] {
+    fn index_mut(&mut self, color: PieceColor) -> &mut Self::Output {
+        &mut self[color as usize]
+    }
+}
+
 impl std::ops::Index<Tile> for [Option<Piece>; 64] {
     type Output = Option<Piece>;
     fn index(&self, tile: Tile) -> &Self::Output {
