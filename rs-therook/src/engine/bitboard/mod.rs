@@ -53,6 +53,12 @@ impl Into<u64> for Bitboard {
     }
 }
 
+impl From<Tile> for Bitboard {
+    fn from(tile: Tile) -> Self {
+        Bitboard(1 << Into::<u8>::into(tile))
+    }
+}
+
 impl From<u64> for Bitboard {
     fn from(value: u64) -> Self {
         Bitboard(value)

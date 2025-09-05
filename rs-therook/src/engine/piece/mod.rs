@@ -1,5 +1,5 @@
-mod _pieces;
 mod _debug;
+mod _pieces;
 mod color;
 mod r#type;
 
@@ -33,10 +33,6 @@ impl Piece {
         BLACK_KNIGHT,
         BLACK_PAWN,
     ];
-
-    pub fn new(color: PieceColor, r#type: PieceType) -> Self {
-        Piece(Into::<u8>::into(color) | Into::<u8>::into(r#type))
-    }
 
     pub fn get_color(&self) -> PieceColor {
         ((self.0 & Self::COLOR_MASK) >> 5).into()
@@ -76,5 +72,12 @@ impl Into<char> for Piece {
             BLACK_PAWN => '\u{2659}',
             _ => panic!("Invalid piece"),
         }
+    }
+}
+
+impl std::ops::BitOr<PieceType> for PieceColor {
+    type Output = Piece;
+    fn bitor(self, rhs: PieceType) -> Piece {
+        Piece(Into::<u8>::into(self) << 5 | Into::<u8>::into(rhs))
     }
 }

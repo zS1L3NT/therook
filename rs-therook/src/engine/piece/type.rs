@@ -8,7 +8,7 @@ const KNIGHT: u8 = 1 << 1;
 const PAWN: u8 = 1;
 
 #[repr(u8)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum PieceType {
     King = KING,
     Queen = QUEEN,

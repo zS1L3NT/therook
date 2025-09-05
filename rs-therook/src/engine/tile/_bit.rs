@@ -4,14 +4,14 @@ use std::ops::*;
 impl<T: Into<Bitboard>> BitOr<T> for Tile {
     type Output = Bitboard;
     fn bitor(self, rhs: T) -> Self::Output {
-        Into::<Bitboard>::into(self) | Into::<Bitboard>::into(rhs)
+        Bitboard::from(self) | rhs.into()
     }
 }
 
 impl Not for Tile {
     type Output = Bitboard;
     fn not(self) -> Self::Output {
-        !Into::<Bitboard>::into(self)
+        !Bitboard::from(self)
     }
 }
 

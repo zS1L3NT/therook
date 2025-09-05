@@ -8,6 +8,13 @@ impl<T: Into<u64>> BitAnd<T> for Bitboard {
     }
 }
 
+impl BitAnd<Tile> for Bitboard {
+    type Output = Self;
+    fn bitand(self, rhs: Tile) -> Self::Output {
+        (self.0 & Bitboard::from(rhs).0).into()
+    }
+}
+
 impl<T: Into<u64>> BitOr<T> for Bitboard {
     type Output = Self;
     fn bitor(self, rhs: T) -> Self::Output {
@@ -15,10 +22,24 @@ impl<T: Into<u64>> BitOr<T> for Bitboard {
     }
 }
 
+impl BitOr<Tile> for Bitboard {
+    type Output = Self;
+    fn bitor(self, rhs: Tile) -> Self::Output {
+        (self.0 | Bitboard::from(rhs).0).into()
+    }
+}
+
 impl<T: Into<u64>> BitXor<T> for Bitboard {
     type Output = Self;
     fn bitxor(self, rhs: T) -> Self::Output {
         (self.0 ^ rhs.into()).into()
+    }
+}
+
+impl BitXor<Tile> for Bitboard {
+    type Output = Self;
+    fn bitxor(self, rhs: Tile) -> Self::Output {
+        (self.0 ^ Bitboard::from(rhs).0).into()
     }
 }
 
