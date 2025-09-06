@@ -1,11 +1,12 @@
 use super::*;
+use crate::interfaces::*;
 
 impl std::fmt::Debug for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         timed!("board stringified", {
             let mut lines = String::new();
 
-            lines.push_str(&format!("Board: {}\n", "<FEN>"));
+            lines.push_str(&format!("Board: {:?}\n", Fen::from(self)));
             lines.push_str(&"  ╔═══╦═══╦═══╦═══╦═══╦═══╦═══╦═══╗\n");
             for rank in (0..8).rev() {
                 lines.push_str(&format!(

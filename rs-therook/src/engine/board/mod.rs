@@ -6,7 +6,8 @@ mod _undo_move;
 mod castling;
 
 use super::*;
-use castling::*;
+use crate::interfaces::*;
+pub use castling::*;
 
 pub struct Board {
     // From FEN
@@ -47,35 +48,7 @@ impl Board {
     }
 
     pub fn initial() -> Self {
-        let mut board = Board::new();
-
-        board.set_tile(tile!(E1), WHITE_KING);
-        board.set_tile(tile!(D1), WHITE_QUEEN);
-        board.set_tile(tile!(A1), WHITE_ROOK);
-        board.set_tile(tile!(H1), WHITE_ROOK);
-        board.set_tile(tile!(C1), WHITE_BISHOP);
-        board.set_tile(tile!(F1), WHITE_BISHOP);
-        board.set_tile(tile!(B1), WHITE_KNIGHT);
-        board.set_tile(tile!(G1), WHITE_KNIGHT);
-        for tile in RANK_2.get_tiles() {
-            board.set_tile(tile, WHITE_PAWN);
-        }
-
-        board.set_tile(tile!(E8), BLACK_KING);
-        board.set_tile(tile!(D8), BLACK_QUEEN);
-        board.set_tile(tile!(A8), BLACK_ROOK);
-        board.set_tile(tile!(H8), BLACK_ROOK);
-        board.set_tile(tile!(C8), BLACK_BISHOP);
-        board.set_tile(tile!(F8), BLACK_BISHOP);
-        board.set_tile(tile!(B8), BLACK_KNIGHT);
-        board.set_tile(tile!(G8), BLACK_KNIGHT);
-        for tile in RANK_7.get_tiles() {
-            board.set_tile(tile, BLACK_PAWN);
-        }
-
-        board.castling = Castling::initial();
-
-        board
+        Fen::initial().try_into().unwrap()
     }
 
     pub fn update_rays(&mut self, color: PieceColor) {

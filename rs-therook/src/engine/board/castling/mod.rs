@@ -1,3 +1,5 @@
+mod _bit;
+
 use CastleDirection::*;
 
 pub struct Castling(u8);
