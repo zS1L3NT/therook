@@ -367,6 +367,9 @@ impl TryInto<Board> for Fen {
                 }
             }
 
+            board.update_pin_lines(PieceColor::White);
+            board.update_pin_lines(PieceColor::Black);
+
             Ok(board)
         })
     }
