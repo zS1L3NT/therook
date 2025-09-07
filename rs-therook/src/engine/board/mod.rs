@@ -47,6 +47,10 @@ impl Board {
         }
     }
 
+    pub fn fen(string: String) -> Result<Self, FenError> {
+        Fen::new(string).try_into()
+    }
+
     pub fn initial() -> Self {
         Fen::initial().try_into().unwrap()
     }

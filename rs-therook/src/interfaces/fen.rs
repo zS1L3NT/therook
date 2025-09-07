@@ -1,6 +1,5 @@
 use crate::engine::*;
 use FenSection::*;
-use std::fmt::Formatter;
 
 // https://www.chess.com/terms/fen-chess
 
@@ -17,7 +16,7 @@ pub enum FenSection {
 pub struct FenError(String);
 
 impl std::fmt::Debug for FenError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -35,7 +34,7 @@ impl Fen {
 }
 
 impl std::fmt::Debug for Fen {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -109,6 +108,10 @@ impl From<&Board> for Fen {
 
             if board.castling.can(CastleDirection::BlackQueen) {
                 fen.push('q');
+            }
+
+            if u8::from(&board.castling) == 0 {
+                fen.push('-');
             }
 
             fen.push(' ');
@@ -196,6 +199,8 @@ impl TryInto<Board> for Fen {
                             }
 
                             *file += 1;
+
+                            continue;
                         }
 
                         if char == '/' {
@@ -222,6 +227,8 @@ impl TryInto<Board> for Fen {
 
                             continue;
                         }
+
+                        return Err(FenError("Invalid piece placement character".into()));
                     }
                     ActiveColor(state) => {
                         match char {
@@ -242,11 +249,17 @@ impl TryInto<Board> for Fen {
                         section = ActiveColor(true)
                     }
                     CastlingRights(state) => {
+                        let castling = u8::from(&board.castling);
                         match char {
                             'K' => board.castling |= CastleDirection::WhiteKing,
                             'Q' => board.castling |= CastleDirection::WhiteQueen,
                             'k' => board.castling |= CastleDirection::BlackKing,
                             'q' => board.castling |= CastleDirection::BlackQueen,
+                            '-' => {
+                                if castling != 0 {
+                                    return Err(FenError("Invalid castling rights string".into()));
+                                }
+                            }
                             ' ' => {
                                 if !*state {
                                     return Err(FenError("Unset castling rights".into()));

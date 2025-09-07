@@ -25,6 +25,12 @@ impl Castling {
     }
 }
 
+impl From<&Castling> for u8 {
+    fn from(castling: &Castling) -> Self {
+        castling.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
