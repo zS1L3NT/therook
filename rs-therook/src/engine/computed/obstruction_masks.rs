@@ -56,8 +56,8 @@ mod tests {
             let reachable = attack_masks.get(PieceColor::White, PieceType::Rook, tile, bitboard);
             let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
-            for _tile in (reachable & !beside).get_tiles() {
-                let _index = u8::from(_tile);
+            for _index in (reachable & !beside) {
+                let _tile = Tile::from(_index);
 
                 if index >> 3 == _index >> 3 {
                     // Same rank
@@ -93,8 +93,8 @@ mod tests {
             let reachable = attack_masks.get(PieceColor::White, PieceType::Bishop, tile, bitboard);
             let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
-            for _tile in (reachable & !beside).get_tiles() {
-                let _index = u8::from(_tile);
+            for _index in (reachable & !beside) {
+                let _tile = Tile::from(_index);
 
                 if line_masks.diagonals[index as usize] == line_masks.diagonals[_index as usize] {
                     // Same diagonal
@@ -131,12 +131,12 @@ mod tests {
             let reachable = attack_masks.get(PieceColor::White, PieceType::Queen, tile, bitboard);
             let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
-            for _tile in (!reachable | beside).get_tiles() {
-                assert_eq!(obstruction_masks.get(tile, _tile), empty);
+            for _index in (!reachable | beside) {
+                assert_eq!(obstruction_masks.get(tile, Tile::from(_index)), empty);
             }
 
-            for _tile in (reachable & !beside).get_tiles() {
-                assert_ne!(obstruction_masks.get(tile, _tile), empty);
+            for _index in (reachable & !beside) {
+                assert_ne!(obstruction_masks.get(tile, Tile::from(_index)), empty);
             }
         }
     }

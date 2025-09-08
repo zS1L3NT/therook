@@ -7,15 +7,15 @@ impl Board {
         self.rays[color] = Bitboard::new();
 
         for r#type in [PieceType::Queen, PieceType::Rook, PieceType::Bishop] {
-            for tile in self.pieces[color | r#type].get_tiles() {
-                let index = u8::from(tile) as usize;
-
+            for index in self.pieces[color | r#type] {
                 if r#type.is_orthogonal_slider() {
-                    self.rays[color] |= line_masks.ranks[index] | line_masks.files[index];
+                    self.rays[color] |= line_masks.ranks[index as usize];
+                    self.rays[color] |= line_masks.files[index as usize];
                 }
 
                 if r#type.is_diagonal_slider() {
-                    self.rays[color] |= line_masks.diagonals[index] | line_masks.antidiags[index];
+                    self.rays[color] |= line_masks.diagonals[index as usize];
+                    self.rays[color] |= line_masks.antidiags[index as usize];
                 }
             }
         }
@@ -35,8 +35,9 @@ impl Board {
             PieceType::Knight,
             PieceType::Pawn,
         ] {
-            for tile in self.pieces[color | r#type].get_tiles() {
-                self.attacks[color] |= attack_masks.get(color, r#type, tile, occupancy);
+            for index in self.pieces[color | r#type] {
+                self.attacks[color] |=
+                    attack_masks.get(color, r#type, Tile::from(index), occupancy);
             }
         }
     }

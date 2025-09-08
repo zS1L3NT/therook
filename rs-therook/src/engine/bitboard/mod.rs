@@ -17,18 +17,6 @@ impl Bitboard {
     pub fn is_empty(&self) -> bool {
         self.0 == 0
     }
-
-    pub fn get_tiles(&self) -> Vec<Tile> {
-        let mut tiles: Vec<Tile> = vec![];
-        let mut bitboard = self.0;
-
-        while bitboard != 0 {
-            tiles.push(Tile::from(bitboard.trailing_zeros() as u8));
-            bitboard &= bitboard - 1;
-        }
-
-        tiles
-    }
 }
 
 impl Iterator for Bitboard {

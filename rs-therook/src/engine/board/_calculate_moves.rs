@@ -37,8 +37,8 @@ impl Board {
                 return moves;
             }
 
-            for tile in friendlies.get_tiles() {
-                let index = u8::from(tile);
+            for index in friendlies {
+                let tile = Tile::from(index);
                 let bitboard = Bitboard::from(tile);
                 let piece = self.squares[index as usize].unwrap();
 

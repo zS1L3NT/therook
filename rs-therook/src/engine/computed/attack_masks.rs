@@ -377,17 +377,23 @@ mod tests {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(tile);
 
-            let diagonal = masks.line_masks.diagonals[index as usize].get_tiles();
-            let diagonal_occupancies = (1..=diagonal.len())
-                .flat_map(|l| diagonal.iter().combinations(l))
-                .map(|ts| ts.iter().fold(Bitboard::new(), |acc, el| acc | **el))
+            let diagonal = masks.line_masks.diagonals[index as usize];
+            let diagonal_occupancies = (1..=diagonal.count())
+                .flat_map(|l| diagonal.into_iter().combinations(l))
+                .map(|ts| {
+                    ts.iter()
+                        .fold(Bitboard::new(), |acc, el| acc | Tile::from(*el))
+                })
                 .filter(|b| !(*b & bitboard).is_empty())
                 .collect::<Vec<_>>();
 
-            let antidiag = masks.line_masks.antidiags[index as usize].get_tiles();
-            let antidiag_occupancies = (1..=antidiag.len())
-                .flat_map(|l| antidiag.iter().combinations(l))
-                .map(|ts| ts.iter().fold(Bitboard::new(), |acc, el| acc | **el))
+            let antidiag = masks.line_masks.antidiags[index as usize];
+            let antidiag_occupancies = (1..=antidiag.count())
+                .flat_map(|l| antidiag.into_iter().combinations(l))
+                .map(|ts| {
+                    ts.iter()
+                        .fold(Bitboard::new(), |acc, el| acc | Tile::from(*el))
+                })
                 .filter(|b| !(*b & bitboard).is_empty())
                 .collect::<Vec<_>>();
 

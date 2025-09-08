@@ -1,5 +1,6 @@
 use crate::engine::*;
 use FenSection::*;
+use itertools::Itertools;
 
 // https://www.chess.com/terms/fen-chess
 
@@ -117,8 +118,7 @@ impl From<&Board> for Fen {
             fen.push(' ');
 
             if !board.enpassant.is_empty() {
-                let tiles = board.enpassant.get_tiles();
-                let tile = tiles.first().unwrap();
+                let tile = board.enpassant.into_iter().find_or_first(|_| true).unwrap();
                 fen.push_str(&format!("{tile:?}"));
             } else {
                 fen.push('-');
