@@ -300,11 +300,11 @@ impl TryInto<Board> for Fen {
                         let file = chars.next().unwrap();
                         let rank = chars.next().unwrap();
 
-                        if string.len() != 2 && files.contains(&file) && ranks.contains(&rank) {
-                            let rank = files.iter().position(|r| *r == rank).unwrap() as u64;
-                            let file = file.to_digit(10).unwrap() as u64;
+                        if string.len() == 2 && files.contains(&file) && ranks.contains(&rank) {
+                            let rank = rank.to_digit(10).unwrap() as u64;
+                            let file = files.iter().position(|r| *r == file).unwrap() as u64;
 
-                            board.enpassant = Bitboard::from(1 << ((rank * 8) + file));
+                            board.enpassant = Bitboard::from(1 << (((rank - 1) * 8) + file));
 
                             section = HalfMoveClock("".into());
                         } else {
@@ -367,8 +367,12 @@ impl TryInto<Board> for Fen {
                 }
             }
 
-            board.update_pin_lines(PieceColor::White);
-            board.update_pin_lines(PieceColor::Black);
+            for color in [PieceColor::White, PieceColor::Black] {
+                board.update_rays(color);
+                board.update_attacks(color);
+                board.update_pin_lines(color);
+                board.update_check_count(color);
+            }
 
             Ok(board)
         })

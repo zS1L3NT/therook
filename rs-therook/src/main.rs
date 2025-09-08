@@ -24,7 +24,7 @@ fn main() {
 macro_rules! timed {
     ($label:expr, $expr:expr) => {{
         let now = std::time::Instant::now();
-        let result = { $expr };
+        let result = (|| $expr)();
         println!("{} in {} ns", $label, now.elapsed().as_nanos());
         result
     }};

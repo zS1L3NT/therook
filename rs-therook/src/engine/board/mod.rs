@@ -3,7 +3,7 @@ mod _debug;
 mod _index;
 mod _make_move;
 mod _undo_move;
-mod _update_pin_lines;
+mod _update;
 mod castling;
 
 use super::*;
@@ -25,7 +25,10 @@ pub struct Board {
     // Extra state of the board
     pub pieces: [Bitboard; 12],
     pub colors: [Bitboard; 2],
+    pub rays: [Bitboard; 2],
+    pub attacks: [Bitboard; 2],
     pub pin_lines: [Bitboard; 2],
+    pub check_count: [u8; 2],
     pub captured: Option<Piece>,
 }
 
@@ -43,6 +46,9 @@ impl Board {
 
             pieces: [Bitboard::new(); 12],
             colors: [Bitboard::new(); 2],
+            rays: [Bitboard::new(); 2],
+            attacks: [Bitboard::new(); 2],
+            check_count: [0; 2],
             pin_lines: [Bitboard::new(); 2],
             captured: None,
         }
@@ -64,6 +70,9 @@ impl Board {
         self.pieces[piece] |= bitboard;
         self.colors[color] |= bitboard;
 
+        if piece.is_slider() {
+            self.update_rays(color);
+        }
         // self.update_pin_lines(color);
         // self.update_pin_lines(color.opposite());
     }
@@ -76,6 +85,9 @@ impl Board {
         self.pieces[piece] ^= bitboard;
         self.colors[color] ^= bitboard;
 
+        if piece.is_slider() {
+            self.update_rays(color);
+        }
         // self.update_pin_lines(color);
         // self.update_pin_lines(color.opposite());
     }
@@ -89,6 +101,9 @@ impl Board {
         self.pieces[piece] ^= bitboard;
         self.colors[color] ^= bitboard;
 
+        if piece.is_slider() {
+            self.update_rays(color);
+        }
         // self.update_pin_lines(color);
         // self.update_pin_lines(color.opposite());
     }
