@@ -1,15 +1,10 @@
 mod _bit;
+mod direction;
 
-use CastleDirection::*;
+use super::*;
+pub use direction::*;
 
 pub struct Castling(u8);
-
-pub enum CastleDirection {
-    WhiteKing = 1 << 7,
-    WhiteQueen = 1 << 6,
-    BlackKing = 1 << 5,
-    BlackQueen = 1 << 4,
-}
 
 impl Castling {
     pub fn new() -> Self {
@@ -20,7 +15,8 @@ impl Castling {
         Castling(WhiteKing as u8 | WhiteQueen as u8 | BlackKing as u8 | BlackQueen as u8)
     }
 
-    pub fn can(&self, direction: CastleDirection) -> bool {
+    // Representation of CastlingDirection
+    pub fn can(&self, direction: CastlingDirection) -> bool {
         self.0 & direction as u8 != 0
     }
 }

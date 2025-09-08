@@ -95,19 +95,19 @@ impl From<&Board> for Fen {
 
             fen.push(' ');
 
-            if board.castling.can(CastleDirection::WhiteKing) {
+            if board.castling.can(CastlingDirection::WhiteKing) {
                 fen.push('K');
             }
 
-            if board.castling.can(CastleDirection::WhiteQueen) {
+            if board.castling.can(CastlingDirection::WhiteQueen) {
                 fen.push('Q');
             }
 
-            if board.castling.can(CastleDirection::BlackKing) {
+            if board.castling.can(CastlingDirection::BlackKing) {
                 fen.push('k');
             }
 
-            if board.castling.can(CastleDirection::BlackQueen) {
+            if board.castling.can(CastlingDirection::BlackQueen) {
                 fen.push('q');
             }
 
@@ -251,10 +251,10 @@ impl TryInto<Board> for Fen {
                     CastlingRights(state) => {
                         let castling = u8::from(&board.castling);
                         match char {
-                            'K' => board.castling |= CastleDirection::WhiteKing,
-                            'Q' => board.castling |= CastleDirection::WhiteQueen,
-                            'k' => board.castling |= CastleDirection::BlackKing,
-                            'q' => board.castling |= CastleDirection::BlackQueen,
+                            'K' => board.castling |= CastlingDirection::WhiteKing,
+                            'Q' => board.castling |= CastlingDirection::WhiteQueen,
+                            'k' => board.castling |= CastlingDirection::BlackKing,
+                            'q' => board.castling |= CastlingDirection::BlackQueen,
                             '-' => {
                                 if castling != 0 {
                                     return Err(FenError("Invalid castling rights string".into()));

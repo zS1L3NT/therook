@@ -56,6 +56,36 @@ impl Board {
                 // Don't allow King to move into attacked squares
                 if r#type == PieceType::King {
                     attacks &= !self.attacks[opponent];
+
+                    if self.castling.can((color | PieceType::King).into()) {
+                        let right_1 = tile << 1;
+                        let right_2 = tile << 2;
+
+                        if check_count == 0
+                            && self.squares[right_1].is_none()
+                            && self.squares[right_2].is_none()
+                            && (self.attacks[opponent] & right_1).is_empty()
+                            && (self.attacks[opponent] & right_2).is_empty()
+                        {
+                            attacks |= Bitboard::from(right_2);
+                        }
+                    }
+
+                    if self.castling.can((color | PieceType::Queen).into()) {
+                        let left_1 = tile >> 1;
+                        let left_2 = tile >> 2;
+                        let left_3 = tile >> 3;
+
+                        if check_count == 0
+                            && self.squares[left_1].is_none()
+                            && self.squares[left_2].is_none()
+                            && self.squares[left_3].is_none()
+                            && (self.attacks[opponent] & left_1).is_empty()
+                            && (self.attacks[opponent] & left_2).is_empty()
+                        {
+                            attacks |= Bitboard::from(left_2);
+                        }
+                    }
                 }
 
                 if r#type == PieceType::Pawn {
@@ -89,6 +119,8 @@ impl Board {
 
                     if r#type == PieceType::Pawn && index.abs_diff(_index) == 16 {
                         moves.push(Move::new(tile, _tile, MoveFlag::PawnDash));
+                    } else if r#type == PieceType::King && index.abs_diff(_index) == 2 {
+                        moves.push(Move::new(tile, _tile, MoveFlag::Castle));
                     } else {
                         moves.push(Move::new(tile, _tile, MoveFlag::None));
                     }
@@ -188,7 +220,7 @@ mod tests {
                     .iter()
                     .filter(|m| m.get_flag() == MoveFlag::Castle)
                     .count(),
-                4
+                2
             );
         }
 
@@ -208,7 +240,8 @@ mod tests {
 
         #[test]
         fn disallowed_when_king_checked() {
-            let board = Board::fen("4k3/8/8/8/8/2b5/8/R3K2R w KQ - 0 1".into()).unwrap();
+            let mut board = Board::fen("4k3/8/8/8/8/2b5/8/R3K2R w KQ - 0 1".into()).unwrap();
+            board.check_count[PieceColor::White] = 1;
             let moves = board.calculate_moves();
 
             assert_eq!(
