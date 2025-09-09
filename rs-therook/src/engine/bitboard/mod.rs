@@ -14,12 +14,12 @@ impl Bitboard {
         Bitboard(0)
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.0 == 0
-    }
-    
     pub fn is_some(&self) -> bool {
         self.0 != 0
+    }
+
+    pub fn is_none(&self) -> bool {
+        self.0 == 0
     }
 }
 

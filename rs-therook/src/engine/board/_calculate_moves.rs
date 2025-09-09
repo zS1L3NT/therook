@@ -61,8 +61,8 @@ impl Board {
                         if self.check_state[color] == CheckState::None
                             && self.squares[right_1].is_none()
                             && self.squares[right_2].is_none()
-                            && (self.attacks[opponent] & right_1).is_empty()
-                            && (self.attacks[opponent] & right_2).is_empty()
+                            && (self.attacks[opponent] & right_1).is_none()
+                            && (self.attacks[opponent] & right_2).is_none()
                         {
                             attacks |= Bitboard::from(right_2);
                         }
@@ -77,8 +77,8 @@ impl Board {
                             && self.squares[left_1].is_none()
                             && self.squares[left_2].is_none()
                             && self.squares[left_3].is_none()
-                            && (self.attacks[opponent] & left_1).is_empty()
-                            && (self.attacks[opponent] & left_2).is_empty()
+                            && (self.attacks[opponent] & left_1).is_none()
+                            && (self.attacks[opponent] & left_2).is_none()
                         {
                             attacks |= Bitboard::from(left_2);
                         }
@@ -153,7 +153,7 @@ impl Board {
                 }
 
                 // If piece is pinned, only allow moves that keep piece within pin line
-                if !(self.pin_lines[color] & tile).is_empty() {
+                if (self.pin_lines[color] & tile).is_some() {
                     attacks &= self.pin_lines[color];
                 }
 

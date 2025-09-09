@@ -14,7 +14,7 @@ impl Computed {
 
         let blockers = blockers & attacks;
 
-        if blockers.is_empty() {
+        if blockers.is_none() {
             blockers
         } else {
             attacks
@@ -39,7 +39,7 @@ impl Computed {
 
         let blockers = blockers & attacks;
 
-        if blockers.is_empty() {
+        if blockers.is_none() {
             blockers
         } else {
             attacks

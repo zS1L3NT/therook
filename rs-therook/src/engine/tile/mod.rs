@@ -22,7 +22,7 @@ impl From<Bitboard> for Tile {
     fn from(bitboard: Bitboard) -> Tile {
         let u64 = u64::from(bitboard);
 
-        if bitboard.is_empty() {
+        if bitboard.is_none() {
             println!("{:?}", bitboard);
             panic!("Cannot call Bitboard::get_tile(&self) when bitboard is empty!");
         }

@@ -384,7 +384,7 @@ mod tests {
                     ts.iter()
                         .fold(Bitboard::new(), |acc, el| acc | Tile::from(*el))
                 })
-                .filter(|b| !(*b & bitboard).is_empty())
+                .filter(|b| (*b & bitboard).is_some())
                 .collect::<Vec<_>>();
 
             let antidiag = masks.line_masks.antidiags[index as usize];
@@ -394,7 +394,7 @@ mod tests {
                     ts.iter()
                         .fold(Bitboard::new(), |acc, el| acc | Tile::from(*el))
                 })
-                .filter(|b| !(*b & bitboard).is_empty())
+                .filter(|b| (*b & bitboard).is_some())
                 .collect::<Vec<_>>();
 
             for diagonal_occupancy in &diagonal_occupancies {
@@ -428,7 +428,7 @@ mod tests {
 
                 expected |= target_bitboard;
 
-                if !(occupancy & target_bitboard).is_empty() {
+                if (occupancy & target_bitboard).is_some() {
                     break;
                 }
             }

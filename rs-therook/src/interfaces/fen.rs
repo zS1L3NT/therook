@@ -117,7 +117,7 @@ impl From<&Board> for Fen {
 
             fen.push(' ');
 
-            if !board.enpassant.is_empty() {
+            if board.enpassant.is_some() {
                 let tile = board.enpassant.into_iter().find_or_first(|_| true).unwrap();
                 fen.push_str(&format!("{tile:?}"));
             } else {
@@ -168,7 +168,7 @@ impl TryInto<Board> for Fen {
 
                             match char {
                                 'K' => {
-                                    if !board.pieces[WHITE_KING].is_empty() {
+                                    if board.pieces[WHITE_KING].is_some() {
                                         return Err(FenError("White King already exists".into()));
                                     }
 
@@ -180,7 +180,7 @@ impl TryInto<Board> for Fen {
                                 'N' => board.set_tile(tile, WHITE_KNIGHT),
                                 'P' => board.set_tile(tile, WHITE_PAWN),
                                 'k' => {
-                                    if !board.pieces[BLACK_KING].is_empty() {
+                                    if board.pieces[BLACK_KING].is_some() {
                                         return Err(FenError("Black King already exists".into()));
                                     }
 

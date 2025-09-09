@@ -74,7 +74,7 @@ impl Board {
     }
 
     fn clear_pinner(&mut self, pinner: &mut Bitboard, color: PieceColor, king: Tile) {
-        while !pinner.is_empty() {
+        while pinner.is_some() {
             let u64 = u64::from(*pinner);
             let tile = Tile::from(u64.trailing_zeros() as u8);
             self.pin_lines[color] |= self.computed.obstruction_masks.get(tile, king);
