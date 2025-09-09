@@ -3,6 +3,6 @@ use super::*;
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum CheckState {
     None,
-    Single(Tile),
+    Single(u8),
     Double,
 }

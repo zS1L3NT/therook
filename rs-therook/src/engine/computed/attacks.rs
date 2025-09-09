@@ -33,13 +33,13 @@ impl Attacks {
             antidiags: [[Bitboard::new(); 64]; 64],
         };
 
-        for index in 0..64usize {
-            let bitboard = Bitboard::from(index as u8);
+        for square in 0..64usize {
+            let bitboard = Bitboard::from(square as u8);
 
             // https://www.chessprogramming.org/King_Pattern#by_Calculation
-            masks.kings[index] |= bitboard.west() | bitboard | bitboard.east();
-            masks.kings[index] |= masks.kings[index].north() | masks.kings[index].south();
-            masks.kings[index] ^= bitboard;
+            masks.kings[square] |= bitboard.west() | bitboard | bitboard.east();
+            masks.kings[square] |= masks.kings[square].north() | masks.kings[square].south();
+            masks.kings[square] ^= bitboard;
 
             // https://www.chessprogramming.org/Knight_Pattern#Multiple_Knight_Attacks
             let east_one = bitboard.east();
@@ -49,15 +49,15 @@ impl Attacks {
             let rank_one = east_one | west_one;
             let rank_two = east_two | west_two;
 
-            masks.knights[index] =
+            masks.knights[square] =
                 (rank_one << 16) | (rank_one >> 16) | (rank_two << 8) | (rank_two >> 8);
 
             // https://www.chessprogramming.org/Pawn_Attacks_(Bitboards)#Attacks_2
-            masks.white_pawns[index] = bitboard.north_east() | bitboard.north_west();
-            masks.black_pawns[index] = bitboard.south_east() | bitboard.south_west();
+            masks.white_pawns[square] = bitboard.north_east() | bitboard.north_west();
+            masks.black_pawns[square] = bitboard.south_east() | bitboard.south_west();
 
-            let rank = index >> 3;
-            let file = index & 7;
+            let rank = square >> 3;
+            let file = square & 7;
             let slider = 1 << file;
             for occupancy in 0..64 {
                 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#Lookup_Techniques
@@ -72,24 +72,24 @@ impl Attacks {
                 let single_rank_files = single_rank.wrapping_mul(FILE_A.into());
                 let single_file_ranks = u64::from(Bitboard::from(single_rank_files).clockwise());
 
-                masks.ranks[index][occupancy] = masks.rays.ranks[index] & single_rank_files;
+                masks.ranks[square][occupancy] = masks.rays.ranks[square] & single_rank_files;
 
                 // Generated through 2 days of blood sweat and tears worth of testing
-                let file_index = rank + ((7 - file) * 8);
+                let file_square = rank + ((7 - file) * 8);
 
-                masks.files[file_index][occupancy] =
-                    (FILE_A << (index as u8 >> 3)) & single_file_ranks;
+                masks.files[file_square][occupancy] =
+                    (FILE_A << (square as u8 >> 3)) & single_file_ranks;
 
                 // https://www.chessprogramming.org/On_an_empty_Board#By_Calculation_3
-                masks.diagonals[index][occupancy] = {
-                    let diagonal = 8 * (index & 7) as i32 - (index & 56) as i32;
+                masks.diagonals[square][occupancy] = {
+                    let diagonal = 8 * (square & 7) as i32 - (square & 56) as i32;
                     let north = (-diagonal & (diagonal >> 31)) as u8;
                     let south = (diagonal & (-diagonal >> 31)) as u8;
                     ((DIAGONAL_MAIN >> south) << north) & single_rank_files
                 };
 
-                masks.antidiags[index][occupancy] = {
-                    let diagonal = 56 - 8 * (index & 7) as i32 - (index & 56) as i32;
+                masks.antidiags[square][occupancy] = {
+                    let diagonal = 56 - 8 * (square & 7) as i32 - (square & 56) as i32;
                     let north = (-diagonal & (diagonal >> 31)) as u8;
                     let south = (diagonal & (-diagonal >> 31)) as u8;
                     ((ANTIDIAG_MAIN >> south) << north) & single_rank_files
@@ -104,44 +104,44 @@ impl Attacks {
         &self,
         color: PieceColor,
         r#type: PieceType,
-        tile: Tile,
+        square: u8,
         occupancy: Bitboard,
     ) -> Bitboard {
-        let index = u8::from(tile) as usize;
+        let square = square as usize;
 
         match r#type {
-            PieceType::King => self.kings[index],
+            PieceType::King => self.kings[square],
             PieceType::Queen => {
-                let rank = occupancy & self.rays.ranks[index];
-                let file = occupancy & self.rays.files[index];
+                let rank = occupancy & self.rays.ranks[square];
+                let file = occupancy & self.rays.files[square];
                 let file = file.anticlockwise();
-                let diagonal = occupancy & self.rays.diagonals[index];
-                let antidiag = occupancy & self.rays.antidiags[index];
+                let diagonal = occupancy & self.rays.diagonals[square];
+                let antidiag = occupancy & self.rays.antidiags[square];
 
-                self.ranks[index][Self::kindergarten(rank)]
-                    | self.files[index][Self::kindergarten(file)]
-                    | self.diagonals[index][Self::kindergarten(diagonal)]
-                    | self.antidiags[index][Self::kindergarten(antidiag)]
+                self.ranks[square][Self::kindergarten(rank)]
+                    | self.files[square][Self::kindergarten(file)]
+                    | self.diagonals[square][Self::kindergarten(diagonal)]
+                    | self.antidiags[square][Self::kindergarten(antidiag)]
             }
             PieceType::Rook => {
-                let rank = occupancy & self.rays.ranks[index];
-                let file = occupancy & self.rays.files[index];
+                let rank = occupancy & self.rays.ranks[square];
+                let file = occupancy & self.rays.files[square];
                 let file = file.anticlockwise();
 
-                self.ranks[index][Self::kindergarten(rank)]
-                    | self.files[index][Self::kindergarten(file)]
+                self.ranks[square][Self::kindergarten(rank)]
+                    | self.files[square][Self::kindergarten(file)]
             }
             PieceType::Bishop => {
-                let diagonal = occupancy & self.rays.diagonals[index];
-                let antidiag = occupancy & self.rays.antidiags[index];
+                let diagonal = occupancy & self.rays.diagonals[square];
+                let antidiag = occupancy & self.rays.antidiags[square];
 
-                self.diagonals[index][Self::kindergarten(diagonal)]
-                    | self.antidiags[index][Self::kindergarten(antidiag)]
+                self.diagonals[square][Self::kindergarten(diagonal)]
+                    | self.antidiags[square][Self::kindergarten(antidiag)]
             }
-            PieceType::Knight => self.knights[index],
+            PieceType::Knight => self.knights[square],
             PieceType::Pawn => match color {
-                PieceColor::White => self.white_pawns[index],
-                PieceColor::Black => self.black_pawns[index],
+                PieceColor::White => self.white_pawns[square],
+                PieceColor::Black => self.black_pawns[square],
             },
         }
     }
@@ -161,11 +161,10 @@ mod tests {
     fn kings() {
         let masks = Attacks::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
-            let rank = index >> 3;
-            let file = index & 7;
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
+            let rank = square >> 3;
+            let file = square & 7;
 
             let mut expected = Bitboard::new();
 
@@ -202,7 +201,7 @@ mod tests {
             }
 
             assert_eq!(
-                masks.get(PieceColor::White, PieceType::King, tile, bitboard),
+                masks.get(PieceColor::White, PieceType::King, square, bitboard),
                 expected
             );
         }
@@ -212,11 +211,10 @@ mod tests {
     fn knights() {
         let masks = Attacks::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
-            let rank = index >> 3;
-            let file = index & 7;
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
+            let rank = square >> 3;
+            let file = square & 7;
 
             let mut expected = Bitboard::new();
 
@@ -253,7 +251,7 @@ mod tests {
             }
 
             assert_eq!(
-                masks.get(PieceColor::White, PieceType::Knight, tile, bitboard),
+                masks.get(PieceColor::White, PieceType::Knight, square, bitboard),
                 expected
             );
         }
@@ -263,10 +261,9 @@ mod tests {
     fn white_pawns() {
         let masks = Attacks::new();
 
-        for index in 8..55 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
-            let file = index & 7;
+        for square in 8..55 {
+            let bitboard = Bitboard::from(square);
+            let file = square & 7;
 
             let mut expected = Bitboard::new();
             if file != 0 {
@@ -278,7 +275,7 @@ mod tests {
             }
 
             assert_eq!(
-                masks.get(PieceColor::White, PieceType::Pawn, tile, bitboard),
+                masks.get(PieceColor::White, PieceType::Pawn, square, bitboard),
                 expected
             );
         }
@@ -288,21 +285,20 @@ mod tests {
     fn black_pawns() {
         let masks = Attacks::new();
 
-        for index in 8..55 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
+        for square in 8..55 {
+            let bitboard = Bitboard::from(square);
 
             let mut expected = Bitboard::new();
-            if index & 7 != 0 {
+            if square & 7 != 0 {
                 expected |= bitboard >> 9;
             }
 
-            if index & 7 != 7 {
+            if square & 7 != 7 {
                 expected |= bitboard >> 7
             }
 
             assert_eq!(
-                masks.get(PieceColor::Black, PieceType::Pawn, tile, bitboard),
+                masks.get(PieceColor::Black, PieceType::Pawn, square, bitboard),
                 expected
             );
         }
@@ -312,12 +308,11 @@ mod tests {
     fn ranks_files_alone() {
         let masks = Attacks::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
             assert_eq!(
-                (masks.rays.ranks[index as usize] | masks.rays.files[index as usize]) ^ bitboard,
-                masks.get(PieceColor::White, PieceType::Rook, tile, bitboard)
+                (masks.rays.ranks[square as usize] | masks.rays.files[square as usize]) ^ bitboard,
+                masks.get(PieceColor::White, PieceType::Rook, square, bitboard)
             );
         }
     }
@@ -326,25 +321,23 @@ mod tests {
     fn ranks_files_with_pieces() {
         let masks = Attacks::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-
+        for square in 0..64u8 {
             for rank_occupancy in 0..256u64 {
-                if rank_occupancy & 1 << (7 - (index >> 3)) == 0 {
+                if rank_occupancy & 1 << (7 - (square >> 3)) == 0 {
                     continue;
                 }
 
                 for file_occupancy in 0..256u64 {
-                    if file_occupancy & 1 << (index & 7) == 0 {
+                    if file_occupancy & 1 << (square & 7) == 0 {
                         continue;
                     }
 
-                    let occupancy = Bitboard::from(rank_occupancy) << (index & 56)
-                        | Bitboard::from(file_occupancy).clockwise() << (index & 7);
+                    let occupancy = Bitboard::from(rank_occupancy) << (square & 56)
+                        | Bitboard::from(file_occupancy).clockwise() << (square & 7);
 
                     assert_eq!(
-                        masks.get(PieceColor::White, PieceType::Rook, tile, occupancy),
-                        walk_directions(vec![8, 1, -8, -1], tile, occupancy)
+                        masks.get(PieceColor::White, PieceType::Rook, square, occupancy),
+                        walk_directions(vec![8, 1, -8, -1], square, occupancy)
                     );
                 }
             }
@@ -355,13 +348,12 @@ mod tests {
     fn diagonals_antidiags_alone() {
         let masks = Attacks::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
             assert_eq!(
-                (masks.rays.diagonals[index as usize] | masks.rays.antidiags[index as usize])
+                (masks.rays.diagonals[square as usize] | masks.rays.antidiags[square as usize])
                     ^ bitboard,
-                masks.get(PieceColor::White, PieceType::Bishop, tile, bitboard)
+                masks.get(PieceColor::White, PieceType::Bishop, square, bitboard)
             );
         }
     }
@@ -370,11 +362,10 @@ mod tests {
     fn diagonals_antidiags_with_pieces() {
         let masks = Attacks::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
 
-            let diagonal = masks.rays.diagonals[index as usize];
+            let diagonal = masks.rays.diagonals[square as usize];
             let diagonal_occupancies = (1..=diagonal.count())
                 .flat_map(|l| diagonal.into_iter().combinations(l))
                 .map(|ts| {
@@ -384,7 +375,7 @@ mod tests {
                 .filter(|b| (*b & bitboard).is_some())
                 .collect::<Vec<_>>();
 
-            let antidiag = masks.rays.antidiags[index as usize];
+            let antidiag = masks.rays.antidiags[square as usize];
             let antidiag_occupancies = (1..=antidiag.count())
                 .flat_map(|l| antidiag.into_iter().combinations(l))
                 .map(|ts| {
@@ -399,28 +390,28 @@ mod tests {
                     let occupancy = (*diagonal_occupancy | *antidiag_occupancy) ^ bitboard;
 
                     assert_eq!(
-                        masks.get(PieceColor::White, PieceType::Bishop, tile, occupancy),
-                        walk_directions(vec![7, 9, -7, -9], tile, occupancy),
+                        masks.get(PieceColor::White, PieceType::Bishop, square, occupancy),
+                        walk_directions(vec![7, 9, -7, -9], square, occupancy),
                     );
                 }
             }
         }
     }
 
-    fn walk_directions(directions: Vec<i8>, tile: Tile, occupancy: Bitboard) -> Bitboard {
+    fn walk_directions(directions: Vec<i8>, square: u8, occupancy: Bitboard) -> Bitboard {
         let mut expected = Bitboard::new();
 
         for direction in directions {
-            let mut target_index = u8::from(tile) as i8;
-            let mut target_rank = target_index >> 3;
-            let mut target_file = target_index & 7;
+            let mut target_square = square as i8;
+            let mut target_rank = target_square >> 3;
+            let mut target_file = target_square & 7;
 
             while !will_leave_board(direction, target_rank, target_file) {
-                target_index += direction;
-                target_rank = target_index >> 3;
-                target_file = target_index & 7;
+                target_square += direction;
+                target_rank = target_square >> 3;
+                target_file = target_square & 7;
 
-                let target_bitboard = Bitboard::from(target_index as u8);
+                let target_bitboard = Bitboard::from(target_square as u8);
 
                 expected |= target_bitboard;
 

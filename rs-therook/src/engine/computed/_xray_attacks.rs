@@ -6,11 +6,11 @@ impl Computed {
         &self,
         occupancy: Bitboard,
         blockers: Bitboard,
-        tile: Tile,
+        square: u8,
     ) -> Bitboard {
         let attacks = self
             .attacks
-            .get(PieceColor::White, PieceType::Rook, tile, occupancy);
+            .get(PieceColor::White, PieceType::Rook, square, occupancy);
 
         let blockers = blockers & attacks;
 
@@ -21,7 +21,7 @@ impl Computed {
                 ^ self.attacks.get(
                     PieceColor::White,
                     PieceType::Rook,
-                    tile,
+                    square,
                     occupancy ^ blockers,
                 )
         }
@@ -31,11 +31,11 @@ impl Computed {
         &self,
         occupancy: Bitboard,
         blockers: Bitboard,
-        tile: Tile,
+        square: u8,
     ) -> Bitboard {
         let attacks = self
             .attacks
-            .get(PieceColor::White, PieceType::Bishop, tile, occupancy);
+            .get(PieceColor::White, PieceType::Bishop, square, occupancy);
 
         let blockers = blockers & attacks;
 
@@ -46,7 +46,7 @@ impl Computed {
                 ^ self.attacks.get(
                     PieceColor::White,
                     PieceType::Bishop,
-                    tile,
+                    square,
                     occupancy ^ blockers,
                 )
         }

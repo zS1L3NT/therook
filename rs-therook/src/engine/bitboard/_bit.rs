@@ -8,13 +8,6 @@ impl BitAnd<Bitboard> for Bitboard {
     }
 }
 
-impl BitAnd<Tile> for Bitboard {
-    type Output = Self;
-    fn bitand(self, rhs: Tile) -> Self::Output {
-        Bitboard(self.0 & (1 << u8::from(rhs)))
-    }
-}
-
 impl BitAnd<u64> for Bitboard {
     type Output = Self;
     fn bitand(self, rhs: u64) -> Self::Output {
@@ -36,13 +29,6 @@ impl BitOr<Bitboard> for Bitboard {
     }
 }
 
-impl BitOr<Tile> for Bitboard {
-    type Output = Self;
-    fn bitor(self, rhs: Tile) -> Self::Output {
-        Bitboard(self.0 | (1 << u8::from(rhs)))
-    }
-}
-
 impl BitOr<u64> for Bitboard {
     type Output = Self;
     fn bitor(self, rhs: u64) -> Self::Output {
@@ -61,13 +47,6 @@ impl BitXor<Bitboard> for Bitboard {
     type Output = Self;
     fn bitxor(self, rhs: Bitboard) -> Self::Output {
         Bitboard(self.0 ^ rhs.0)
-    }
-}
-
-impl BitXor<Tile> for Bitboard {
-    type Output = Self;
-    fn bitxor(self, rhs: Tile) -> Self::Output {
-        Bitboard(self.0 ^ (1 << u8::from(rhs)))
     }
 }
 
@@ -112,12 +91,6 @@ impl BitAndAssign<Bitboard> for Bitboard {
     }
 }
 
-impl BitAndAssign<Tile> for Bitboard {
-    fn bitand_assign(&mut self, rhs: Tile) {
-        self.0 &= 1 << u8::from(rhs)
-    }
-}
-
 impl BitAndAssign<u64> for Bitboard {
     fn bitand_assign(&mut self, rhs: u64) {
         self.0 &= rhs
@@ -136,12 +109,6 @@ impl BitOrAssign<Bitboard> for Bitboard {
     }
 }
 
-impl BitOrAssign<Tile> for Bitboard {
-    fn bitor_assign(&mut self, rhs: Tile) {
-        self.0 |= 1 << u8::from(rhs)
-    }
-}
-
 impl BitOrAssign<u64> for Bitboard {
     fn bitor_assign(&mut self, rhs: u64) {
         self.0 |= rhs
@@ -157,12 +124,6 @@ impl BitOrAssign<u8> for Bitboard {
 impl BitXorAssign<Bitboard> for Bitboard {
     fn bitxor_assign(&mut self, rhs: Bitboard) {
         self.0 ^= rhs.0
-    }
-}
-
-impl BitXorAssign<Tile> for Bitboard {
-    fn bitxor_assign(&mut self, rhs: Tile) {
-        self.0 ^= 1 << u8::from(rhs)
     }
 }
 

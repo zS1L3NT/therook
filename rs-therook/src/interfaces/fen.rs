@@ -118,8 +118,8 @@ impl From<&Board> for Fen {
             fen.push(' ');
 
             if board.enpassant.is_some() {
-                let tile = board.enpassant.into_iter().find_or_first(|_| true).unwrap();
-                fen.push_str(&format!("{tile:?}"));
+                let square = board.enpassant.into_iter().find_or_first(|_| true).unwrap();
+                fen.push_str(&format!("{square:?}"));
             } else {
                 fen.push('-');
             }
@@ -164,7 +164,7 @@ impl TryInto<Board> for Fen {
                                 return Err(FenError(format!("Rank {rank} exceeds 8 files")));
                             }
 
-                            let tile = Tile::from((*rank * 8 + *file) as u8);
+                            let square = (*rank * 8 + *file) as u8;
 
                             match char {
                                 'K' => {
@@ -172,25 +172,25 @@ impl TryInto<Board> for Fen {
                                         return Err(FenError("White King already exists".into()));
                                     }
 
-                                    board.set_tile(tile, WHITE_KING);
+                                    board.set_square(square, WHITE_KING);
                                 }
-                                'Q' => board.set_tile(tile, WHITE_QUEEN),
-                                'R' => board.set_tile(tile, WHITE_ROOK),
-                                'B' => board.set_tile(tile, WHITE_BISHOP),
-                                'N' => board.set_tile(tile, WHITE_KNIGHT),
-                                'P' => board.set_tile(tile, WHITE_PAWN),
+                                'Q' => board.set_square(square, WHITE_QUEEN),
+                                'R' => board.set_square(square, WHITE_ROOK),
+                                'B' => board.set_square(square, WHITE_BISHOP),
+                                'N' => board.set_square(square, WHITE_KNIGHT),
+                                'P' => board.set_square(square, WHITE_PAWN),
                                 'k' => {
                                     if board.pieces[BLACK_KING].is_some() {
                                         return Err(FenError("Black King already exists".into()));
                                     }
 
-                                    board.set_tile(tile, BLACK_KING);
+                                    board.set_square(square, BLACK_KING);
                                 }
-                                'q' => board.set_tile(tile, BLACK_QUEEN),
-                                'r' => board.set_tile(tile, BLACK_ROOK),
-                                'b' => board.set_tile(tile, BLACK_BISHOP),
-                                'n' => board.set_tile(tile, BLACK_KNIGHT),
-                                'p' => board.set_tile(tile, BLACK_PAWN),
+                                'q' => board.set_square(square, BLACK_QUEEN),
+                                'r' => board.set_square(square, BLACK_ROOK),
+                                'b' => board.set_square(square, BLACK_BISHOP),
+                                'n' => board.set_square(square, BLACK_KNIGHT),
+                                'p' => board.set_square(square, BLACK_PAWN),
                                 _ => {
                                     return Err(FenError(format!(
                                         "Invalid piece character {char}"
@@ -371,7 +371,6 @@ impl TryInto<Board> for Fen {
                 board.update_rays(color);
                 board.update_attacks(color);
                 board.update_pin_lines(color);
-                board.update_check_count(color);
             }
 
             Ok(board)

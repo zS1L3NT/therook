@@ -39,7 +39,7 @@ impl From<u8> for MoveFlag {
             PROMOTE_ROOK => PromoteRook,
             PROMOTE_BISHOP => PromoteBishop,
             PROMOTE_KNIGHT => PromoteKnight,
-            _ => panic!("Unknown move type: {u8:?}"),
+            _ => panic!("Unknown move flag: {u8:?}"),
         }
     }
 }

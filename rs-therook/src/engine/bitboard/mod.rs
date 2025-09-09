@@ -30,15 +30,27 @@ impl From<Bitboard> for u64 {
     }
 }
 
-impl From<u64> for Bitboard {
-    fn from(u64: u64) -> Self {
-        Bitboard(u64)
+impl TryFrom<Bitboard> for u8 {
+    type Error = String;
+
+    fn try_from(bitboard: Bitboard) -> Result<Self, Self::Error> {
+        let u64 = u64::from(bitboard);
+
+        if bitboard.is_none() {
+            return Err("Cannot convert empty Bitboard to u8".into());
+        }
+
+        if u64 & u64 - 1 != 0 {
+            return Err("Cannot convert Bitboard with multiple u8s into one u8".into());
+        }
+
+        Ok(u64.trailing_zeros() as u8)
     }
 }
 
-impl From<Tile> for Bitboard {
-    fn from(tile: Tile) -> Self {
-        Bitboard(1 << u8::from(tile))
+impl From<u64> for Bitboard {
+    fn from(u64: u64) -> Self {
+        Bitboard(u64)
     }
 }
 

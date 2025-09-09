@@ -64,11 +64,11 @@ impl Board {
         Fen::initial().try_into().unwrap()
     }
 
-    pub fn set_tile(&mut self, tile: Tile, piece: Piece) {
-        let bitboard = Bitboard::from(tile);
+    pub fn set_square(&mut self, square: u8, piece: Piece) {
+        let bitboard = Bitboard::from(square);
         let color = piece.get_color();
 
-        self.squares[tile] = Some(piece);
+        self.squares[square as usize] = Some(piece);
         self.pieces[piece] |= bitboard;
         self.colors[color] |= bitboard;
 
@@ -79,11 +79,11 @@ impl Board {
         // self.update_pin_lines(color.opposite());
     }
 
-    pub fn clear_tile(&mut self, tile: Tile, piece: Piece) {
-        let bitboard = Bitboard::from(tile);
+    pub fn clear_square(&mut self, square: u8, piece: Piece) {
+        let bitboard = Bitboard::from(square);
         let color = piece.get_color();
 
-        self.squares[tile] = None;
+        self.squares[square as usize] = None;
         self.pieces[piece] ^= bitboard;
         self.colors[color] ^= bitboard;
 
@@ -94,12 +94,12 @@ impl Board {
         // self.update_pin_lines(color.opposite());
     }
 
-    pub fn move_piece(&mut self, from: Tile, to: Tile, piece: Piece) {
-        let bitboard = Bitboard::from(from) | Bitboard::from(to);
+    pub fn move_piece(&mut self, from_square: u8, to_square: u8, piece: Piece) {
+        let bitboard = Bitboard::from(from_square) | Bitboard::from(to_square);
         let color = piece.get_color();
 
-        self.squares[from] = None;
-        self.squares[to] = Some(piece);
+        self.squares[from_square as usize] = None;
+        self.squares[to_square as usize] = Some(piece);
         self.pieces[piece] ^= bitboard;
         self.colors[color] ^= bitboard;
 

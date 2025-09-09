@@ -8,8 +8,8 @@ impl Iterator for Bitboard {
             return None;
         }
 
-        let index = self.0.trailing_zeros() as u8;
+        let square = self.0.trailing_zeros() as u8;
         self.0 &= self.0 - 1;
-        Some(index)
+        Some(square)
     }
 }

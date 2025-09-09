@@ -12,14 +12,14 @@ impl Board {
             let enemies = self.colors[opponent];
             let occupancy = friendlies | enemies;
 
-            let king = Tile::try_from(self.pieces[color | PieceType::King]).unwrap();
+            let king_square = u8::try_from(self.pieces[color | PieceType::King]).unwrap();
 
             // Return early because double checks means only King can move
             if self.check_state[color] == CheckState::Double {
                 let mut attacks =
                     self.computed
                         .attacks
-                        .get(color, PieceType::King, king, occupancy);
+                        .get(color, PieceType::King, king_square, occupancy);
 
                 // Don't attack friendly pieces
                 attacks &= !friendlies;
@@ -27,22 +27,21 @@ impl Board {
                 // Don't allow King to move into attacked squares
                 attacks &= !self.attacks[opponent];
 
-                for _index in attacks {
-                    moves.push(Move::new(king, Tile::from(_index), MoveFlag::None));
+                for _square in attacks {
+                    moves.push(Move::new(king_square, _square, MoveFlag::None));
                 }
 
                 return moves;
             }
 
-            for index in friendlies {
-                let tile = Tile::from(index);
-                let bitboard = Bitboard::from(index);
-                let piece = self.squares[index as usize].unwrap();
+            for square in friendlies {
+                let bitboard = Bitboard::from(square);
+                let piece = self.squares[square as usize].unwrap();
 
                 let color = piece.get_color();
                 let r#type = piece.get_type();
 
-                let mut attacks = self.computed.attacks.get(color, r#type, tile, occupancy);
+                let mut attacks = self.computed.attacks.get(color, r#type, square, occupancy);
 
                 // Don't attack friendly pieces
                 attacks &= !friendlies;
@@ -51,34 +50,25 @@ impl Board {
                 if r#type == PieceType::King {
                     attacks &= !self.attacks[opponent];
 
-                    if self.castling.can((color | PieceType::King).into()) {
-                        let right_1 = tile << 1;
-                        let right_2 = tile << 2;
-
-                        if self.check_state[color] == CheckState::None
-                            && self.squares[right_1].is_none()
-                            && self.squares[right_2].is_none()
-                            && (self.attacks[opponent] & right_1).is_none()
-                            && (self.attacks[opponent] & right_2).is_none()
-                        {
-                            attacks |= Bitboard::from(right_2);
-                        }
+                    if self.castling.can((color | PieceType::King).into())
+                        && self.check_state[color] == CheckState::None
+                        && self.squares[square as usize + 1].is_none()
+                        && self.squares[square as usize + 2].is_none()
+                        && (self.attacks[opponent] & Bitboard::from(square + 1)).is_none()
+                        && (self.attacks[opponent] & Bitboard::from(square + 2)).is_none()
+                    {
+                        attacks |= Bitboard::from(square + 2);
                     }
 
-                    if self.castling.can((color | PieceType::Queen).into()) {
-                        let left_1 = tile >> 1;
-                        let left_2 = tile >> 2;
-                        let left_3 = tile >> 3;
-
-                        if self.check_state[color] == CheckState::None
-                            && self.squares[left_1].is_none()
-                            && self.squares[left_2].is_none()
-                            && self.squares[left_3].is_none()
-                            && (self.attacks[opponent] & left_1).is_none()
-                            && (self.attacks[opponent] & left_2).is_none()
-                        {
-                            attacks |= Bitboard::from(left_2);
-                        }
+                    if self.castling.can((color | PieceType::Queen).into())
+                        && self.check_state[color] == CheckState::None
+                        && self.squares[square as usize - 1].is_none()
+                        && self.squares[square as usize - 2].is_none()
+                        && self.squares[square as usize - 3].is_none()
+                        && (self.attacks[opponent] & Bitboard::from(square - 1)).is_none()
+                        && (self.attacks[opponent] & Bitboard::from(square - 2)).is_none()
+                    {
+                        attacks |= Bitboard::from(square - 2);
                     }
                 }
 
@@ -87,14 +77,13 @@ impl Board {
 
                     // Check for enpassant before removing empty attack squares, since enpassant technically attacks an empty square
                     if (attacks & self.enpassant).is_some() {
-                        let enpassant_tile = Tile::try_from(self.enpassant).unwrap();
+                        let enpassant_square = u8::try_from(self.enpassant).unwrap();
 
                         let diagonal_pinned = (self.pin_lines[color] & self.enpassant).is_some();
                         let orthogonal_pinned = {
                             // Annoyingly long algorithm to calculate orthogonal pins
-                            let capturing_pawn = tile;
-                            let captured_pawn =
-                                Tile::from((index & 56) + (u8::from(enpassant_tile) & 7));
+                            let capturing_pawn = square;
+                            let captured_pawn = (square & 56) + (enpassant_square & 7);
 
                             let enemy_orthogonals = self.pieces[opponent | PieceType::Rook]
                                 | self.pieces[opponent | PieceType::Queen];
@@ -102,7 +91,7 @@ impl Board {
                             let rook_attacks_from_king_without_pawns = self.computed.attacks.get(
                                 color,
                                 PieceType::Rook,
-                                Tile::try_from(self.pieces[color | PieceType::King]).unwrap(),
+                                king_square,
                                 occupancy ^ capturing_pawn ^ captured_pawn,
                             );
 
@@ -120,18 +109,18 @@ impl Board {
                         attacks |= self.enpassant;
                     }
 
-                    if color == PieceColor::White && self.squares[tile << 8].is_none() {
+                    if color == PieceColor::White && self.squares[square as usize + 8].is_none() {
                         attacks |= bitboard << 8;
 
-                        if index >> 3 == 1 && self.squares[tile << 16].is_none() {
+                        if square >> 3 == 1 && self.squares[square as usize + 16].is_none() {
                             attacks |= bitboard << 16;
                         }
                     }
 
-                    if color == PieceColor::Black && self.squares[tile >> 8].is_none() {
+                    if color == PieceColor::Black && self.squares[square as usize - 8].is_none() {
                         attacks |= bitboard >> 8;
 
-                        if index >> 3 == 6 && self.squares[tile >> 16].is_none() {
+                        if square >> 3 == 6 && self.squares[square as usize - 16].is_none() {
                             attacks |= bitboard >> 16;
                         }
                     }
@@ -141,24 +130,23 @@ impl Board {
                 if r#type != PieceType::King {
                     if let CheckState::Single(attacker) = self.check_state[color] {
                         // Try to resolve the check by blocking or capturing the attacker
-                        attacks &= self.computed.betweens.get(attacker, king) | attacker;
+                        attacks &= self.computed.betweens.get(attacker, king_square) | attacker;
                     }
                 }
 
                 // If piece is pinned, only allow moves that keep piece within pin line
-                if (self.pin_lines[color] & tile).is_some() {
+                if (self.pin_lines[color] & Bitboard::from(square)).is_some() {
                     attacks &= self.pin_lines[color];
                 }
 
-                for _index in attacks {
-                    let _tile = Tile::from(_index);
-                    let _rank = _index >> 3;
-                    let _file = _index & 7;
+                for _square in attacks {
+                    let _rank = _square >> 3;
+                    let _file = _square & 7;
 
                     let mut flag = MoveFlag::None;
 
                     if r#type == PieceType::Pawn {
-                        if index.abs_diff(_index) == 16 {
+                        if square.abs_diff(_square) == 16 {
                             flag = MoveFlag::PawnDash;
                         }
 
@@ -169,19 +157,19 @@ impl Board {
                         }
 
                         if _rank == 0 || _rank == 7 {
-                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteQueen));
-                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteRook));
-                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteBishop));
-                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteKnight));
+                            moves.push(Move::new(square, _square, MoveFlag::PromoteQueen));
+                            moves.push(Move::new(square, _square, MoveFlag::PromoteRook));
+                            moves.push(Move::new(square, _square, MoveFlag::PromoteBishop));
+                            moves.push(Move::new(square, _square, MoveFlag::PromoteKnight));
                             continue;
                         }
                     }
 
-                    if r#type == PieceType::King && index.abs_diff(_index) == 2 {
+                    if r#type == PieceType::King && square.abs_diff(_square) == 2 {
                         flag = MoveFlag::Castle;
                     }
 
-                    moves.push(Move::new(tile, _tile, flag));
+                    moves.push(Move::new(square, _square, flag));
                 }
             }
 
@@ -205,9 +193,9 @@ mod tests {
             assert_eq!(
                 board.calculate_moves(),
                 vec![
-                    Move::new(tile!(E1), tile!(D1), MoveFlag::None),
-                    Move::new(tile!(E1), tile!(F1), MoveFlag::None),
-                    Move::new(tile!(E1), tile!(F2), MoveFlag::None),
+                    Move::new(square!(E1), square!(D1), MoveFlag::None),
+                    Move::new(square!(E1), square!(F1), MoveFlag::None),
+                    Move::new(square!(E1), square!(F2), MoveFlag::None),
                 ]
             );
         }
@@ -219,7 +207,7 @@ mod tests {
 
             assert_eq!(
                 board.calculate_moves(),
-                vec![Move::new(tile!(E3), tile!(F4), MoveFlag::None)]
+                vec![Move::new(square!(E3), square!(F4), MoveFlag::None)]
             );
         }
     }
@@ -234,7 +222,7 @@ mod tests {
 
             assert_eq!(
                 moves.iter().find(|m| m.get_flag() == MoveFlag::EnPassant),
-                Some(&Move::new(tile!(E5), tile!(D6), MoveFlag::EnPassant))
+                Some(&Move::new(square!(E5), square!(D6), MoveFlag::EnPassant))
             );
         }
 
@@ -244,8 +232,8 @@ mod tests {
             let moves = board.calculate_moves();
 
             assert_eq!(
-                moves.iter().find(|m| m.get_start() == tile!(E5)
-                    && m.get_end() == tile!(D6)
+                moves.iter().find(|m| m.get_start() == square!(E5)
+                    && m.get_end() == square!(D6)
                     && m.get_flag() == MoveFlag::EnPassant),
                 None
             );
@@ -257,8 +245,8 @@ mod tests {
             let moves = board.calculate_moves();
 
             assert_eq!(
-                moves.iter().find(|m| m.get_start() == tile!(E5)
-                    && m.get_end() == tile!(D6)
+                moves.iter().find(|m| m.get_start() == square!(E5)
+                    && m.get_end() == square!(D6)
                     && m.get_flag() == MoveFlag::EnPassant),
                 None
             );
@@ -270,8 +258,8 @@ mod tests {
             let moves = board.calculate_moves();
 
             assert_eq!(
-                moves.iter().find(|m| m.get_start() == tile!(E5)
-                    && m.get_end() == tile!(D6)
+                moves.iter().find(|m| m.get_start() == square!(E5)
+                    && m.get_end() == square!(D6)
                     && m.get_flag() == MoveFlag::EnPassant),
                 None
             );
@@ -312,7 +300,7 @@ mod tests {
         #[test]
         fn disallowed_when_king_checked() {
             let mut board = Board::fen("4k3/8/8/8/8/2b5/8/R3K2R w KQ - 0 1".into()).unwrap();
-            board.check_state[PieceColor::White] = CheckState::Single(tile!(C3));
+            board.check_state[PieceColor::White] = CheckState::Single(u8::from(square!(C3)));
 
             let moves = board.calculate_moves();
 
@@ -360,7 +348,10 @@ mod tests {
             let moves = board.calculate_moves();
 
             assert_eq!(
-                moves.iter().filter(|m| m.get_start() == tile!(A7)).count(),
+                moves
+                    .iter()
+                    .filter(|m| m.get_start() == square!(A7))
+                    .count(),
                 4
             );
         }
@@ -371,7 +362,10 @@ mod tests {
             let moves = board.calculate_moves();
 
             assert_eq!(
-                moves.iter().filter(|m| m.get_start() == tile!(A2)).count(),
+                moves
+                    .iter()
+                    .filter(|m| m.get_start() == square!(A2))
+                    .count(),
                 4
             );
         }

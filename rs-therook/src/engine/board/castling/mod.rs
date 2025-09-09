@@ -13,7 +13,12 @@ impl Castling {
     }
 
     pub fn initial() -> Self {
-        Castling(WhiteKing as u8 | WhiteQueen as u8 | BlackKing as u8 | BlackQueen as u8)
+        Castling(
+            CastlingDirection::WhiteKing as u8
+                | CastlingDirection::WhiteQueen as u8
+                | CastlingDirection::BlackKing as u8
+                | CastlingDirection::BlackQueen as u8,
+        )
     }
 
     pub fn can(&self, direction: CastlingDirection) -> bool {

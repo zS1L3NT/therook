@@ -34,8 +34,8 @@ impl Betweens {
         masks
     }
 
-    pub fn get(&self, start: Tile, end: Tile) -> Bitboard {
-        self.data[u8::from(start) as usize][u8::from(end) as usize]
+    pub fn get(&self, start: u8, end: u8) -> Bitboard {
+        self.data[start as usize][end as usize]
     }
 }
 
@@ -48,32 +48,29 @@ mod tests {
         let attacks = Attacks::new();
         let betweens = Betweens::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
 
-            let reachable = attacks.get(PieceColor::White, PieceType::Rook, tile, bitboard);
-            let beside = attacks.get(PieceColor::White, PieceType::King, tile, bitboard);
+            let reachable = attacks.get(PieceColor::White, PieceType::Rook, square, bitboard);
+            let beside = attacks.get(PieceColor::White, PieceType::King, square, bitboard);
 
-            for _index in reachable & !beside {
-                let _tile = Tile::from(_index);
-
-                if index >> 3 == _index >> 3 {
+            for _square in reachable & !beside {
+                if square >> 3 == _square >> 3 {
                     // Same rank
                     let mut obstructions = Bitboard::new();
-                    for i in (index.min(_index) + 1)..(index.max(_index)) {
+                    for i in (square.min(_square) + 1)..square.max(_square) {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(betweens.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(square, _square), obstructions);
                 } else {
                     // Same file
                     let mut obstructions = Bitboard::new();
-                    for i in ((index.min(_index) + 8)..index.max(_index)).step_by(8) {
+                    for i in ((square.min(_square) + 8)..square.max(_square)).step_by(8) {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(betweens.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(square, _square), obstructions);
                 }
             }
         }
@@ -85,32 +82,29 @@ mod tests {
         let attacks = Attacks::new();
         let betweens = Betweens::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
 
-            let reachable = attacks.get(PieceColor::White, PieceType::Bishop, tile, bitboard);
-            let beside = attacks.get(PieceColor::White, PieceType::King, tile, bitboard);
+            let reachable = attacks.get(PieceColor::White, PieceType::Bishop, square, bitboard);
+            let beside = attacks.get(PieceColor::White, PieceType::King, square, bitboard);
 
-            for _index in reachable & !beside {
-                let _tile = Tile::from(_index);
-
-                if rays.diagonals[index as usize] == rays.diagonals[_index as usize] {
+            for _square in reachable & !beside {
+                if rays.diagonals[square as usize] == rays.diagonals[_square as usize] {
                     // Same diagonal
                     let mut obstructions = Bitboard::new();
-                    for i in ((index.min(_index) + 9)..index.max(_index)).step_by(9) {
+                    for i in ((square.min(_square) + 9)..square.max(_square)).step_by(9) {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(betweens.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(square, _square), obstructions);
                 } else {
                     // Same antidiag
                     let mut obstructions = Bitboard::new();
-                    for i in ((index.min(_index) + 7)..index.max(_index)).step_by(7) {
+                    for i in ((square.min(_square) + 7)..square.max(_square)).step_by(7) {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(betweens.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(square, _square), obstructions);
                 }
             }
         }
@@ -123,19 +117,18 @@ mod tests {
 
         let empty = Bitboard::new();
 
-        for index in 0..64u8 {
-            let tile = Tile::from(index);
-            let bitboard = Bitboard::from(index);
+        for square in 0..64u8 {
+            let bitboard = Bitboard::from(square);
 
-            let reachable = attacks.get(PieceColor::White, PieceType::Queen, tile, bitboard);
-            let beside = attacks.get(PieceColor::White, PieceType::King, tile, bitboard);
+            let reachable = attacks.get(PieceColor::White, PieceType::Queen, square, bitboard);
+            let beside = attacks.get(PieceColor::White, PieceType::King, square, bitboard);
 
-            for _index in !reachable | beside {
-                assert_eq!(betweens.get(tile, Tile::from(_index)), empty);
+            for _square in !reachable | beside {
+                assert_eq!(betweens.get(square, _square), empty);
             }
 
-            for _index in reachable & !beside {
-                assert_ne!(betweens.get(tile, Tile::from(_index)), empty);
+            for _square in reachable & !beside {
+                assert_ne!(betweens.get(square, _square), empty);
             }
         }
     }

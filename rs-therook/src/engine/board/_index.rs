@@ -45,16 +45,3 @@ impl<T> std::ops::IndexMut<PieceColor> for [T; 2] {
         &mut self[color as usize]
     }
 }
-
-impl<T> std::ops::Index<Tile> for [T; 64] {
-    type Output = T;
-    fn index(&self, tile: Tile) -> &Self::Output {
-        &self[u8::from(tile) as usize]
-    }
-}
-
-impl<T> std::ops::IndexMut<Tile> for [T; 64] {
-    fn index_mut(&mut self, tile: Tile) -> &mut Self::Output {
-        &mut self[u8::from(tile) as usize]
-    }
-}

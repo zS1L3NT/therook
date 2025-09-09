@@ -1,5 +1,5 @@
 use super::*;
-pub use CastlingDirection::*;
+use CastlingDirection::*;
 
 pub enum CastlingDirection {
     WhiteKing = 1 << 3,

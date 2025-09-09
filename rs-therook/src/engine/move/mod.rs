@@ -4,7 +4,7 @@ mod flag;
 use super::*;
 pub use flag::*;
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Move(u16);
 
 impl Move {
@@ -12,16 +12,16 @@ impl Move {
     pub const END_MASK: u16 = 0b111111 << 4;
     pub const FLAG_MASK: u16 = 0b1111;
 
-    pub fn new(start: Tile, end: Tile, flag: MoveFlag) -> Self {
-        Move((u8::from(start) as u16) << 10 | (u8::from(end) as u16) << 4 | u8::from(flag) as u16)
+    pub fn new(start: u8, end: u8, flag: MoveFlag) -> Self {
+        Move((start as u16) << 10 | (end as u16) << 4 | u8::from(flag) as u16)
     }
 
-    pub fn get_start(&self) -> Tile {
-        Tile::from(((self.0 & Self::START_MASK) >> 10) as u8)
+    pub fn get_start(&self) -> u8 {
+        ((self.0 & Self::START_MASK) >> 10) as u8
     }
 
-    pub fn get_end(&self) -> Tile {
-        Tile::from(((self.0 & Self::END_MASK) >> 4) as u8)
+    pub fn get_end(&self) -> u8 {
+        ((self.0 & Self::END_MASK) >> 4) as u8
     }
 
     pub fn get_flag(&self) -> MoveFlag {
