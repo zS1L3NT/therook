@@ -17,11 +17,11 @@ impl Move {
     }
 
     pub fn get_start(&self) -> Tile {
-        (((self.0 & Self::START_MASK) >> 10) as u8).into()
+        Tile::from(((self.0 & Self::START_MASK) >> 10) as u8)
     }
 
     pub fn get_end(&self) -> Tile {
-        (((self.0 & Self::END_MASK) >> 4) as u8).into()
+        Tile::from(((self.0 & Self::END_MASK) >> 4) as u8)
     }
 
     pub fn get_flag(&self) -> MoveFlag {
