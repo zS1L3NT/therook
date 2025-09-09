@@ -17,6 +17,10 @@ impl Bitboard {
     pub fn is_empty(&self) -> bool {
         self.0 == 0
     }
+    
+    pub fn is_some(&self) -> bool {
+        self.0 != 0
+    }
 }
 
 impl Iterator for Bitboard {

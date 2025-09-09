@@ -12,11 +12,8 @@ impl Board {
             let enemies = self.colors[opponent];
             let occupancy = friendlies | enemies;
 
-            let pin_lines = self.pin_lines[color];
-            let check_count = self.check_count[color];
-
             // Return early because double checks means only King can move
-            if check_count == 2 {
+            if self.check_state[color] == CheckState::Double {
                 let tile = Tile::from(self.pieces[color | PieceType::King]);
 
                 let mut attacks =
@@ -61,7 +58,7 @@ impl Board {
                         let right_1 = tile << 1;
                         let right_2 = tile << 2;
 
-                        if check_count == 0
+                        if self.check_state[color] == CheckState::None
                             && self.squares[right_1].is_none()
                             && self.squares[right_2].is_none()
                             && (self.attacks[opponent] & right_1).is_empty()
@@ -76,7 +73,7 @@ impl Board {
                         let left_2 = tile >> 2;
                         let left_3 = tile >> 3;
 
-                        if check_count == 0
+                        if self.check_state[color] == CheckState::None
                             && self.squares[left_1].is_none()
                             && self.squares[left_2].is_none()
                             && self.squares[left_3].is_none()
@@ -89,8 +86,42 @@ impl Board {
                 }
 
                 if r#type == PieceType::Pawn {
+                    let mut can_enpassant = false;
+
+                    // Check for enpassant before removing empty attack squares, since enpassant technically attacks an empty square
+                    if (attacks & self.enpassant).is_some() {
+                        let diagonal_pinned = (self.pin_lines[color] & self.enpassant).is_some();
+                        let orthogonal_pinned = {
+                            // Annoyingly long algorithm to calculate orthogonal pins
+                            let capturing_pawn = tile;
+                            let captured_pawn = Tile::from(
+                                (index & 56) + (u8::from(Tile::from(self.enpassant)) & 7),
+                            );
+
+                            let enemy_orthogonals = self.pieces[opponent | PieceType::Rook]
+                                | self.pieces[opponent | PieceType::Queen];
+
+                            let rook_attacks_from_king_without_pawns =
+                                self.computed.attack_masks.get(
+                                    color,
+                                    PieceType::Rook,
+                                    Tile::from(self.pieces[color | PieceType::King]),
+                                    occupancy ^ capturing_pawn ^ captured_pawn,
+                                );
+
+                            (rook_attacks_from_king_without_pawns & enemy_orthogonals).is_some()
+                        };
+
+                        can_enpassant = !diagonal_pinned && !orthogonal_pinned;
+                    }
+
                     // Only attack when there is an enemy piece
                     attacks &= enemies;
+
+                    // With the one exception of enpassant
+                    if can_enpassant {
+                        attacks |= self.enpassant;
+                    }
 
                     if color == PieceColor::White && self.squares[tile << 8].is_none() {
                         attacks |= bitboard << 8u64;
@@ -109,21 +140,55 @@ impl Board {
                     }
                 }
 
-                if !(pin_lines & tile).is_empty() {
-                    // Piece is pinned, only allow moves that keep piece within pin line
-                    attacks &= pin_lines;
+                // If in check and the piece is not a king
+                if r#type != PieceType::King {
+                    if let CheckState::Single(attacker) = self.check_state[color] {
+                        // Try to resolve the check by capturing or blocking
+                        attacks &= attacker
+                            | self
+                                .computed
+                                .obstruction_masks
+                                .get(attacker, Tile::from(self.pieces[color | PieceType::King]));
+                    }
+                }
+
+                // If piece is pinned, only allow moves that keep piece within pin line
+                if !(self.pin_lines[color] & tile).is_empty() {
+                    attacks &= self.pin_lines[color];
                 }
 
                 for _index in attacks {
                     let _tile = Tile::from(_index);
+                    let _rank = _index >> 3;
+                    let _file = _index & 7;
 
-                    if r#type == PieceType::Pawn && index.abs_diff(_index) == 16 {
-                        moves.push(Move::new(tile, _tile, MoveFlag::PawnDash));
-                    } else if r#type == PieceType::King && index.abs_diff(_index) == 2 {
-                        moves.push(Move::new(tile, _tile, MoveFlag::Castle));
-                    } else {
-                        moves.push(Move::new(tile, _tile, MoveFlag::None));
+                    let mut flag = MoveFlag::None;
+
+                    if r#type == PieceType::Pawn {
+                        if index.abs_diff(_index) == 16 {
+                            flag = MoveFlag::PawnDash;
+                        }
+
+                        if self.enpassant.is_some()
+                            && _file == (u8::from(Tile::from(self.enpassant)) & 7)
+                        {
+                            flag = MoveFlag::EnPassant;
+                        }
+
+                        if _rank == 0 || _rank == 7 {
+                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteQueen));
+                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteRook));
+                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteBishop));
+                            moves.push(Move::new(tile, _tile, MoveFlag::PromoteKnight));
+                            continue;
+                        }
                     }
+
+                    if r#type == PieceType::King && index.abs_diff(_index) == 2 {
+                        flag = MoveFlag::Castle;
+                    }
+
+                    moves.push(Move::new(tile, _tile, flag));
                 }
             }
 
@@ -142,7 +207,7 @@ mod tests {
         #[test]
         fn double_check() {
             let mut board = Board::fen("4k3/8/8/8/1b6/4r3/8/4K3 w - - 0 1".into()).unwrap();
-            board.check_count[PieceColor::White] = 2;
+            board.check_state[PieceColor::White] = CheckState::Double;
 
             assert_eq!(
                 board.calculate_moves(),
@@ -157,7 +222,7 @@ mod tests {
         #[test]
         fn double_check_forced() {
             let mut board = Board::fen("4k3/8/1b6/4r3/8/4K3/r7/4n3 w - - 0 1".into()).unwrap();
-            board.check_count[PieceColor::White] = 2;
+            board.check_state[PieceColor::White] = CheckState::Double;
 
             assert_eq!(
                 board.calculate_moves(),
@@ -205,6 +270,19 @@ mod tests {
                 None
             );
         }
+
+        #[test]
+        fn disallowed_when_both_pinned() {
+            let board = Board::fen("8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 1".into()).unwrap();
+            let moves = board.calculate_moves();
+
+            assert_eq!(
+                moves.iter().find(|m| m.get_start() == tile!(E5)
+                    && m.get_end() == tile!(D6)
+                    && m.get_flag() == MoveFlag::EnPassant),
+                None
+            );
+        }
     }
 
     mod castling {
@@ -241,7 +319,8 @@ mod tests {
         #[test]
         fn disallowed_when_king_checked() {
             let mut board = Board::fen("4k3/8/8/8/8/2b5/8/R3K2R w KQ - 0 1".into()).unwrap();
-            board.check_count[PieceColor::White] = 1;
+            board.check_state[PieceColor::White] = CheckState::Single(tile!(C3));
+
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -275,6 +354,32 @@ mod tests {
                     .filter(|m| m.get_flag() == MoveFlag::Castle)
                     .count(),
                 0
+            );
+        }
+    }
+
+    mod promote {
+        use super::*;
+
+        #[test]
+        fn white() {
+            let board = Board::fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1".into()).unwrap();
+            let moves = board.calculate_moves();
+
+            assert_eq!(
+                moves.iter().filter(|m| m.get_start() == tile!(A7)).count(),
+                4
+            );
+        }
+
+        #[test]
+        fn black() {
+            let board = Board::fen("4k3/8/8/8/8/8/p7/4K3 b - - 0 1".into()).unwrap();
+            let moves = board.calculate_moves();
+
+            assert_eq!(
+                moves.iter().filter(|m| m.get_start() == tile!(A2)).count(),
+                4
             );
         }
     }

@@ -5,10 +5,12 @@ mod _make_move;
 mod _undo_move;
 mod _update;
 mod castling;
+mod check_state;
 
 use super::*;
 use crate::interfaces::*;
 pub use castling::*;
+pub use check_state::*;
 
 pub struct Board {
     // From FEN
@@ -28,7 +30,7 @@ pub struct Board {
     pub rays: [Bitboard; 2],
     pub attacks: [Bitboard; 2],
     pub pin_lines: [Bitboard; 2],
-    pub check_count: [u8; 2],
+    pub check_state: [CheckState; 2],
     pub captured: Option<Piece>,
 }
 
@@ -48,7 +50,7 @@ impl Board {
             colors: [Bitboard::new(); 2],
             rays: [Bitboard::new(); 2],
             attacks: [Bitboard::new(); 2],
-            check_count: [0; 2],
+            check_state: [CheckState::None, CheckState::None],
             pin_lines: [Bitboard::new(); 2],
             captured: None,
         }
