@@ -15,7 +15,6 @@ impl Castling {
         Castling(WhiteKing as u8 | WhiteQueen as u8 | BlackKing as u8 | BlackQueen as u8)
     }
 
-    // Representation of CastlingDirection
     pub fn can(&self, direction: CastlingDirection) -> bool {
         self.0 & direction as u8 != 0
     }

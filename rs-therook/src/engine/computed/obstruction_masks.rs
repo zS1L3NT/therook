@@ -1,5 +1,4 @@
 use super::*;
-use std::num::Wrapping;
 
 pub struct ObstructionMasks {
     data: [[Bitboard; 64]; 64],
@@ -51,12 +50,12 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
 
             let reachable = attack_masks.get(PieceColor::White, PieceType::Rook, tile, bitboard);
             let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
-            for _index in (reachable & !beside) {
+            for _index in reachable & !beside {
                 let _tile = Tile::from(_index);
 
                 if index >> 3 == _index >> 3 {
@@ -88,12 +87,12 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
 
             let reachable = attack_masks.get(PieceColor::White, PieceType::Bishop, tile, bitboard);
             let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
-            for _index in (reachable & !beside) {
+            for _index in reachable & !beside {
                 let _tile = Tile::from(_index);
 
                 if line_masks.diagonals[index as usize] == line_masks.diagonals[_index as usize] {
@@ -126,16 +125,16 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
 
             let reachable = attack_masks.get(PieceColor::White, PieceType::Queen, tile, bitboard);
             let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
-            for _index in (!reachable | beside) {
+            for _index in !reachable | beside {
                 assert_eq!(obstruction_masks.get(tile, Tile::from(_index)), empty);
             }
 
-            for _index in (reachable & !beside) {
+            for _index in reachable & !beside {
                 assert_ne!(obstruction_masks.get(tile, Tile::from(_index)), empty);
             }
         }

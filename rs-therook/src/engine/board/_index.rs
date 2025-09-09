@@ -1,4 +1,4 @@
-use super::{super::Bitboard, *};
+use super::*;
 
 impl Piece {
     fn get_index(&self) -> usize {

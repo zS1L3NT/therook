@@ -19,7 +19,7 @@ pub fn tile(input: TokenStream) -> TokenStream {
     let file = chars.next().unwrap();
     let rank = chars.next().unwrap();
 
-    format!("crate::engine::Tile::from(crate::engine::FILE_{file} & crate::engine::RANK_{rank})")
+    format!("crate::engine::Tile::try_from(crate::engine::FILE_{file} & crate::engine::RANK_{rank}).unwrap()")
         .parse()
         .unwrap()
 }

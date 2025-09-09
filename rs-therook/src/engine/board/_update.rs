@@ -51,7 +51,7 @@ impl Board {
             let enemies = self.colors[opponent];
             let occupied = friendlies | enemies;
 
-            let king = Tile::from(self.pieces[color | PieceType::King]);
+            let king = Tile::try_from(self.pieces[color | PieceType::King]).unwrap();
 
             self.pin_lines[color] = Bitboard::new();
 

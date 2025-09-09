@@ -18,20 +18,38 @@ impl From<u8> for Tile {
     }
 }
 
-impl From<Bitboard> for Tile {
-    fn from(bitboard: Bitboard) -> Tile {
+impl TryFrom<Bitboard> for u8 {
+    type Error = String;
+
+    fn try_from(bitboard: Bitboard) -> Result<Self, Self::Error> {
         let u64 = u64::from(bitboard);
 
         if bitboard.is_none() {
-            println!("{:?}", bitboard);
-            panic!("Cannot call Bitboard::get_tile(&self) when bitboard is empty!");
+            return Err("Cannot convert empty Bitboard to u8".into());
         }
 
         if u64 & u64 - 1 != 0 {
-            println!("{:?}", bitboard);
-            panic!("Cannot call Bitboard::get_tile(&self) when bitboard has more than one bit!");
+            return Err("Cannot convert Bitboard with multiple u8s into one u8".into());
         }
 
-        Tile::from(u64.trailing_zeros() as u8)
+        Ok(u64.trailing_zeros() as u8)
+    }
+}
+
+impl TryFrom<Bitboard> for Tile {
+    type Error = String;
+
+    fn try_from(bitboard: Bitboard) -> Result<Self, Self::Error> {
+        let u64 = u64::from(bitboard);
+
+        if bitboard.is_none() {
+            return Err("Cannot convert empty Bitboard to Tile".into());
+        }
+
+        if u64 & u64 - 1 != 0 {
+            return Err("Cannot convert Bitboard with multiple Tiles into one Tile".into());
+        }
+
+        Ok(Tile::from(u64.trailing_zeros() as u8))
     }
 }

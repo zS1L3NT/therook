@@ -1,42 +1,42 @@
 use super::*;
 use std::ops::*;
 
-impl<T: Into<Bitboard>> BitOr<T> for Tile {
+impl BitOr<Tile> for Tile {
     type Output = Bitboard;
-    fn bitor(self, rhs: T) -> Self::Output {
-        Bitboard::from(self) | rhs.into()
+    fn bitor(self, rhs: Tile) -> Self::Output {
+        Bitboard::from((1u64 << self.0) | (1u64 << u8::from(rhs)))
     }
 }
 
 impl Not for Tile {
     type Output = Bitboard;
     fn not(self) -> Self::Output {
-        !Bitboard::from(self)
+        !Bitboard::from(self.0)
     }
 }
 
-impl<T: Into<u8>> Shl<T> for Tile {
-    type Output = Tile;
-    fn shl(self, rhs: T) -> Self::Output {
-        (self.0 + rhs.into()).into()
+impl Shl<u8> for Tile {
+    type Output = Self;
+    fn shl(self, rhs: u8) -> Self::Output {
+        Tile(self.0 + rhs)
     }
 }
 
-impl<T: Into<u8>> Shr<T> for Tile {
-    type Output = Tile;
-    fn shr(self, rhs: T) -> Self::Output {
-        (self.0 - rhs.into()).into()
+impl Shr<u8> for Tile {
+    type Output = Self;
+    fn shr(self, rhs: u8) -> Self::Output {
+        Tile(self.0 - rhs)
     }
 }
 
-impl<T: Into<u8>> ShlAssign<T> for Tile {
-    fn shl_assign(&mut self, rhs: T) {
-        self.0 += rhs.into()
+impl ShlAssign<u8> for Tile {
+    fn shl_assign(&mut self, rhs: u8) {
+        self.0 += rhs
     }
 }
 
-impl<T: Into<u8>> ShrAssign<T> for Tile {
-    fn shr_assign(&mut self, rhs: T) {
-        self.0 -= rhs.into()
+impl ShrAssign<u8> for Tile {
+    fn shr_assign(&mut self, rhs: u8) {
+        self.0 -= rhs
     }
 }

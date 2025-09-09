@@ -301,10 +301,10 @@ impl TryInto<Board> for Fen {
                         let rank = chars.next().unwrap();
 
                         if string.len() == 2 && files.contains(&file) && ranks.contains(&rank) {
-                            let rank = rank.to_digit(10).unwrap() as u64;
-                            let file = files.iter().position(|r| *r == file).unwrap() as u64;
+                            let rank = rank.to_digit(10).unwrap() as u8;
+                            let file = files.iter().position(|r| *r == file).unwrap() as u8;
 
-                            board.enpassant = Bitboard::from(1 << (((rank - 1) * 8) + file));
+                            board.enpassant = Bitboard::from(((rank - 1) * 8) + file);
 
                             section = HalfMoveClock("".into());
                         } else {

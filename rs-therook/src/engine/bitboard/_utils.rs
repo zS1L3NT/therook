@@ -29,35 +29,35 @@ pub const ANTIDIAG_MAIN: Bitboard = Bitboard(0x0102040810204080);
 
 impl Bitboard {
     pub fn north(self) -> Bitboard {
-        self << 8u64
+        self << 8
     }
 
     pub fn north_east(self) -> Bitboard {
-        (self << 9u64) & !FILE_A
+        (self << 9) & !FILE_A
     }
 
     pub fn east(self) -> Bitboard {
-        (self << 1u64) & !FILE_A
+        (self << 1) & !FILE_A
     }
 
     pub fn south_east(self) -> Bitboard {
-        (self >> 7u64) & !FILE_A
+        (self >> 7) & !FILE_A
     }
 
     pub fn south(self) -> Bitboard {
-        self >> 8u64
+        self >> 8
     }
 
     pub fn south_west(self) -> Bitboard {
-        (self >> 9u64) & !FILE_H
+        (self >> 9) & !FILE_H
     }
 
     pub fn west(self) -> Bitboard {
-        (self >> 1u64) & !FILE_H
+        (self >> 1) & !FILE_H
     }
 
     pub fn north_west(self) -> Bitboard {
-        (self << 7u64) & !FILE_H
+        (self << 7) & !FILE_H
     }
 
     pub fn clockwise(self) -> Bitboard {
@@ -100,16 +100,16 @@ mod tests {
     #[test]
     fn clockwise() {
         assert_eq!(
-            Bitboard::from(0xFF888C92610000),
-            Bitboard::from(0x1E2222120E0A1222).clockwise()
+            Bitboard::from(0xFF888C92610000u64),
+            Bitboard::from(0x1E2222120E0A1222u64).clockwise()
         );
     }
 
     #[test]
     fn anticlockwise() {
         assert_eq!(
-            Bitboard::from(0x86493111FF00),
-            Bitboard::from(0x1E2222120E0A1222).anticlockwise()
+            Bitboard::from(0x86493111FF00u64),
+            Bitboard::from(0x1E2222120E0A1222u64).anticlockwise()
         );
     }
 }

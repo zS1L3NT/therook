@@ -34,8 +34,7 @@ impl AttackMasks {
         };
 
         for index in 0..64usize {
-            let tile = Tile::from(index as u8);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index as u8);
 
             // https://www.chessprogramming.org/King_Pattern#by_Calculation
             masks.kings[index] |= bitboard.west() | bitboard | bitboard.east();
@@ -51,7 +50,7 @@ impl AttackMasks {
             let rank_two = east_two | west_two;
 
             masks.knights[index] =
-                (rank_one << 16u64) | (rank_one >> 16u64) | (rank_two << 8u64) | (rank_two >> 8u64);
+                (rank_one << 16) | (rank_one >> 16) | (rank_two << 8) | (rank_two >> 8);
 
             // https://www.chessprogramming.org/Pawn_Attacks_(Bitboards)#Attacks_2
             masks.white_pawns[index] = bitboard.north_east() | bitboard.north_west();
@@ -79,20 +78,20 @@ impl AttackMasks {
                 let file_index = rank + ((7 - file) * 8);
 
                 masks.files[file_index][occupancy] =
-                    (FILE_A << (index >> 3) as u64) & single_file_ranks;
+                    (FILE_A << (index as u8 >> 3)) & single_file_ranks;
 
                 // https://www.chessprogramming.org/On_an_empty_Board#By_Calculation_3
                 masks.diagonals[index][occupancy] = {
                     let diagonal = 8 * (index & 7) as i32 - (index & 56) as i32;
-                    let north = (-diagonal & (diagonal >> 31)) as u64;
-                    let south = (diagonal & (-diagonal >> 31)) as u64;
+                    let north = (-diagonal & (diagonal >> 31)) as u8;
+                    let south = (diagonal & (-diagonal >> 31)) as u8;
                     ((DIAGONAL_MAIN >> south) << north) & single_rank_files
                 };
 
                 masks.antidiags[index][occupancy] = {
                     let diagonal = 56 - 8 * (index & 7) as i32 - (index & 56) as i32;
-                    let north = (-diagonal & (diagonal >> 31)) as u64;
-                    let south = (diagonal & (-diagonal >> 31)) as u64;
+                    let north = (-diagonal & (diagonal >> 31)) as u8;
+                    let south = (diagonal & (-diagonal >> 31)) as u8;
                     ((ANTIDIAG_MAIN >> south) << north) & single_rank_files
                 };
             }
@@ -164,42 +163,42 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
             let rank = index >> 3;
             let file = index & 7;
 
             let mut expected = Bitboard::new();
 
             if rank != 7 {
-                expected |= bitboard << 8u64;
+                expected |= bitboard << 8;
             }
 
             if rank != 7 && file != 7 {
-                expected |= bitboard << 9u64;
+                expected |= bitboard << 9;
             }
 
             if file != 7 {
-                expected |= bitboard << 1u64;
+                expected |= bitboard << 1;
             }
 
             if rank != 0 && file != 7 {
-                expected |= bitboard >> 7u64;
+                expected |= bitboard >> 7;
             }
 
             if rank != 0 {
-                expected |= bitboard >> 8u64;
+                expected |= bitboard >> 8;
             }
 
             if rank != 0 && file != 0 {
-                expected |= bitboard >> 9u64;
+                expected |= bitboard >> 9;
             }
 
             if file != 0 {
-                expected |= bitboard >> 1u64;
+                expected |= bitboard >> 1;
             }
 
             if rank != 7 && file != 0 {
-                expected |= bitboard << 7u64;
+                expected |= bitboard << 7;
             }
 
             assert_eq!(
@@ -215,42 +214,42 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
             let rank = index >> 3;
             let file = index & 7;
 
             let mut expected = Bitboard::new();
 
             if rank < 6 && file > 0 {
-                expected |= bitboard << 15u64;
+                expected |= bitboard << 15;
             }
 
             if rank < 6 && file < 7 {
-                expected |= bitboard << 17u64;
+                expected |= bitboard << 17;
             }
 
             if rank < 7 && file < 6 {
-                expected |= bitboard << 10u64;
+                expected |= bitboard << 10;
             }
 
             if rank > 0 && file < 6 {
-                expected |= bitboard >> 6u64;
+                expected |= bitboard >> 6;
             }
 
             if rank > 1 && file < 7 {
-                expected |= bitboard >> 15u64;
+                expected |= bitboard >> 15;
             }
 
             if rank > 1 && file > 0 {
-                expected |= bitboard >> 17u64;
+                expected |= bitboard >> 17;
             }
 
             if rank > 0 && file > 1 {
-                expected |= bitboard >> 10u64;
+                expected |= bitboard >> 10;
             }
 
             if rank < 7 && file > 1 {
-                expected |= bitboard << 6u64;
+                expected |= bitboard << 6;
             }
 
             assert_eq!(
@@ -266,16 +265,16 @@ mod tests {
 
         for index in 8..55 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
             let file = index & 7;
 
             let mut expected = Bitboard::new();
             if file != 0 {
-                expected |= bitboard << 7u64;
+                expected |= bitboard << 7;
             }
 
             if file != 7 {
-                expected |= bitboard << 9u64
+                expected |= bitboard << 9
             }
 
             assert_eq!(
@@ -291,15 +290,15 @@ mod tests {
 
         for index in 8..55 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
 
             let mut expected = Bitboard::new();
             if index & 7 != 0 {
-                expected |= bitboard >> 9u64;
+                expected |= bitboard >> 9;
             }
 
             if index & 7 != 7 {
-                expected |= bitboard >> 7u64
+                expected |= bitboard >> 7
             }
 
             assert_eq!(
@@ -315,7 +314,7 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
             assert_eq!(
                 (masks.line_masks.ranks[index as usize] | masks.line_masks.files[index as usize])
                     ^ bitboard,
@@ -359,7 +358,7 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
             assert_eq!(
                 (masks.line_masks.diagonals[index as usize]
                     | masks.line_masks.antidiags[index as usize])
@@ -375,14 +374,14 @@ mod tests {
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
-            let bitboard = Bitboard::from(tile);
+            let bitboard = Bitboard::from(index);
 
             let diagonal = masks.line_masks.diagonals[index as usize];
             let diagonal_occupancies = (1..=diagonal.count())
                 .flat_map(|l| diagonal.into_iter().combinations(l))
                 .map(|ts| {
                     ts.iter()
-                        .fold(Bitboard::new(), |acc, el| acc | Tile::from(*el))
+                        .fold(Bitboard::new(), |acc, el| acc | Bitboard::from(*el))
                 })
                 .filter(|b| (*b & bitboard).is_some())
                 .collect::<Vec<_>>();
@@ -392,7 +391,7 @@ mod tests {
                 .flat_map(|l| antidiag.into_iter().combinations(l))
                 .map(|ts| {
                     ts.iter()
-                        .fold(Bitboard::new(), |acc, el| acc | Tile::from(*el))
+                        .fold(Bitboard::new(), |acc, el| acc | Bitboard::from(*el))
                 })
                 .filter(|b| (*b & bitboard).is_some())
                 .collect::<Vec<_>>();
@@ -423,8 +422,7 @@ mod tests {
                 target_rank = target_index >> 3;
                 target_file = target_index & 7;
 
-                let target_tile = Tile::from(target_index as u8);
-                let target_bitboard = Bitboard::from(target_tile);
+                let target_bitboard = Bitboard::from(target_index as u8);
 
                 expected |= target_bitboard;
 

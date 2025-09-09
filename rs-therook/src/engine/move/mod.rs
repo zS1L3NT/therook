@@ -13,11 +13,7 @@ impl Move {
     pub const FLAG_MASK: u16 = 0b1111;
 
     pub fn new(start: Tile, end: Tile, flag: MoveFlag) -> Self {
-        Move(
-            (u8::from(start) as u16) << 10
-                | (u8::from(end) as u16) << 4
-                | u8::from(flag) as u16,
-        )
+        Move((u8::from(start) as u16) << 10 | (u8::from(end) as u16) << 4 | u8::from(flag) as u16)
     }
 
     pub fn get_start(&self) -> Tile {

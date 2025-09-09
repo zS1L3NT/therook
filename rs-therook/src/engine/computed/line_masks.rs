@@ -16,7 +16,7 @@ impl LineMasks {
             antidiags: [Bitboard::new(); 64],
         };
 
-        for index in 0..64u64 {
+        for index in 0..64 {
             let rank = (index >> 3) as i8;
             let file = (index & 7) as i8;
 

@@ -1,5 +1,6 @@
 mod _bit;
 mod _debug;
+mod _iterator;
 mod _utils;
 
 pub use _utils::*;
@@ -23,23 +24,15 @@ impl Bitboard {
     }
 }
 
-impl Iterator for Bitboard {
-    type Item = u8;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.0 == 0 {
-            return None;
-        }
-
-        let index = self.0.trailing_zeros() as u8;
-        self.0 &= self.0 - 1;
-        Some(index)
-    }
-}
-
 impl From<Bitboard> for u64 {
     fn from(bitboard: Bitboard) -> Self {
         bitboard.0
+    }
+}
+
+impl From<u64> for Bitboard {
+    fn from(u64: u64) -> Self {
+        Bitboard(u64)
     }
 }
 
@@ -49,8 +42,8 @@ impl From<Tile> for Bitboard {
     }
 }
 
-impl From<u64> for Bitboard {
-    fn from(u64: u64) -> Self {
-        Bitboard(u64)
+impl From<u8> for Bitboard {
+    fn from(u8: u8) -> Self {
+        Bitboard(1 << u8)
     }
 }
