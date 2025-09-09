@@ -70,7 +70,7 @@ impl From<&Board> for Fen {
                             BLACK_BISHOP => fen.push('b'),
                             BLACK_KNIGHT => fen.push('n'),
                             BLACK_PAWN => fen.push('p'),
-                            _ => panic!(),
+                            _ => unreachable!(),
                         }
                     } else {
                         stack += 1;

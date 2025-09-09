@@ -447,7 +447,7 @@ mod tests {
             -9 => rank == 0 || file == 0,
             -1 => file == 0,
             7 => rank == 7 || file == 0,
-            _ => panic!("invalid direction"),
+            _ => unreachable!(),
         }
     }
 }

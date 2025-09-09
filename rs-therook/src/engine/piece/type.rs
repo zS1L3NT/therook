@@ -47,7 +47,7 @@ impl From<u8> for PieceType {
             BISHOP => Bishop,
             KNIGHT => Knight,
             PAWN => Pawn,
-            _ => panic!("Unknown piece type"),
+            _ => panic!("Unknown piece type: {u8:?}"),
         }
     }
 }

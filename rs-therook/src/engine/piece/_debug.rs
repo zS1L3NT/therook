@@ -18,7 +18,7 @@ impl std::fmt::Debug for Piece {
                 BLACK_BISHOP => "BlackBishop",
                 BLACK_KNIGHT => "BlackKnight",
                 BLACK_PAWN => "BlackPawn",
-                _ => panic!("Unknown piece"),
+                _ => panic!("Unknown piece: {self:?}"),
             },
             char::from(*self)
         )

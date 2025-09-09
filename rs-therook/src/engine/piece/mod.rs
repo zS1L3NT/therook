@@ -71,7 +71,7 @@ impl From<Piece> for char {
             BLACK_BISHOP => '\u{2657}',
             BLACK_KNIGHT => '\u{2658}',
             BLACK_PAWN => '\u{2659}',
-            _ => panic!("Invalid piece"),
+            _ => panic!("Unknown piece: {piece:?}"),
         }
     }
 }

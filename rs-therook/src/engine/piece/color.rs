@@ -39,7 +39,7 @@ impl From<u8> for PieceColor {
         match u8 {
             WHITE => White,
             BLACK => Black,
-            _ => panic!("Unknown team"),
+            _ => panic!("Unknown color: {u8:?}"),
         }
     }
 }

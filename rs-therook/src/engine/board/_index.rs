@@ -15,7 +15,7 @@ impl Piece {
             BLACK_BISHOP => 9,
             BLACK_KNIGHT => 10,
             BLACK_PAWN => 11,
-            _ => panic!("Invalid piece type"),
+            _ => panic!("Unknown piece type: {self:?}"),
         }
     }
 }
