@@ -4,6 +4,7 @@ mod direction;
 use super::*;
 pub use direction::*;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Castling(u8);
 
 impl Castling {
@@ -20,8 +21,8 @@ impl Castling {
     }
 }
 
-impl From<&Castling> for u8 {
-    fn from(castling: &Castling) -> Self {
+impl From<Castling> for u8 {
+    fn from(castling: Castling) -> Self {
         castling.0
     }
 }

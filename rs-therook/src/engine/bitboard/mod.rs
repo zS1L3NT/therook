@@ -7,7 +7,7 @@ pub use _utils::*;
 
 use super::*;
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Bitboard(u64);
 
 impl Bitboard {

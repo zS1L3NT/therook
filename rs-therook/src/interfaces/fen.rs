@@ -111,7 +111,7 @@ impl From<&Board> for Fen {
                 fen.push('q');
             }
 
-            if u8::from(&board.castling) == 0 {
+            if u8::from(board.castling) == 0 {
                 fen.push('-');
             }
 
@@ -249,7 +249,7 @@ impl TryInto<Board> for Fen {
                         section = ActiveColor(true)
                     }
                     CastlingRights(state) => {
-                        let castling = u8::from(&board.castling);
+                        let castling = u8::from(board.castling);
                         match char {
                             'K' => board.castling |= CastlingDirection::WhiteKing,
                             'Q' => board.castling |= CastlingDirection::WhiteQueen,

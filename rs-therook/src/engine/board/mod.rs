@@ -50,7 +50,7 @@ impl Board {
             colors: [Bitboard::new(); 2],
             rays: [Bitboard::new(); 2],
             attacks: [Bitboard::new(); 2],
-            check_state: [CheckState::None, CheckState::None],
+            check_state: [CheckState::None; 2],
             pin_lines: [Bitboard::new(); 2],
             captured: None,
         }

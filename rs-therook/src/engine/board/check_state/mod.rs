@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum CheckState {
     None,
     Single(Tile),
