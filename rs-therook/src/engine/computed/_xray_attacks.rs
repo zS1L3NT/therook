@@ -9,7 +9,7 @@ impl Computed {
         tile: Tile,
     ) -> Bitboard {
         let attacks = self
-            .attack_masks
+            .attacks
             .get(PieceColor::White, PieceType::Rook, tile, occupancy);
 
         let blockers = blockers & attacks;
@@ -18,7 +18,7 @@ impl Computed {
             blockers
         } else {
             attacks
-                ^ self.attack_masks.get(
+                ^ self.attacks.get(
                     PieceColor::White,
                     PieceType::Rook,
                     tile,
@@ -34,7 +34,7 @@ impl Computed {
         tile: Tile,
     ) -> Bitboard {
         let attacks = self
-            .attack_masks
+            .attacks
             .get(PieceColor::White, PieceType::Bishop, tile, occupancy);
 
         let blockers = blockers & attacks;
@@ -43,7 +43,7 @@ impl Computed {
             blockers
         } else {
             attacks
-                ^ self.attack_masks.get(
+                ^ self.attacks.get(
                     PieceColor::White,
                     PieceType::Bishop,
                     tile,

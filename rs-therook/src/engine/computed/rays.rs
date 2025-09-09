@@ -1,15 +1,15 @@
 use super::*;
 
-pub struct LineMasks {
+pub struct Rays {
     pub ranks: [Bitboard; 64],
     pub files: [Bitboard; 64],
     pub diagonals: [Bitboard; 64],
     pub antidiags: [Bitboard; 64],
 }
 
-impl LineMasks {
+impl Rays {
     pub fn new() -> Self {
-        let mut masks = LineMasks {
+        let mut masks = Rays {
             ranks: [Bitboard::new(); 64],
             files: [Bitboard::new(); 64],
             diagonals: [Bitboard::new(); 64],

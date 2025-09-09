@@ -1,8 +1,8 @@
 use super::*;
 use std::num::Wrapping;
 
-pub struct AttackMasks {
-    line_masks: LineMasks,
+pub struct Attacks {
+    rays: Rays,
 
     kings: [Bitboard; 64],
     knights: [Bitboard; 64],
@@ -15,12 +15,12 @@ pub struct AttackMasks {
     antidiags: [[Bitboard; 64]; 64],
 }
 
-impl AttackMasks {
+impl Attacks {
     const FILE_B: u64 = 0x0202020202020202;
 
     pub fn new() -> Self {
-        let mut masks = AttackMasks {
-            line_masks: LineMasks::new(),
+        let mut masks = Attacks {
+            rays: Rays::new(),
 
             kings: [Bitboard::new(); 64],
             knights: [Bitboard::new(); 64],
@@ -72,7 +72,7 @@ impl AttackMasks {
                 let single_rank_files = single_rank.wrapping_mul(FILE_A.into());
                 let single_file_ranks = u64::from(Bitboard::from(single_rank_files).clockwise());
 
-                masks.ranks[index][occupancy] = masks.line_masks.ranks[index] & single_rank_files;
+                masks.ranks[index][occupancy] = masks.rays.ranks[index] & single_rank_files;
 
                 // Generated through 2 days of blood sweat and tears worth of testing
                 let file_index = rank + ((7 - file) * 8);
@@ -112,11 +112,11 @@ impl AttackMasks {
         match r#type {
             PieceType::King => self.kings[index],
             PieceType::Queen => {
-                let rank = occupancy & self.line_masks.ranks[index];
-                let file = occupancy & self.line_masks.files[index];
+                let rank = occupancy & self.rays.ranks[index];
+                let file = occupancy & self.rays.files[index];
                 let file = file.anticlockwise();
-                let diagonal = occupancy & self.line_masks.diagonals[index];
-                let antidiag = occupancy & self.line_masks.antidiags[index];
+                let diagonal = occupancy & self.rays.diagonals[index];
+                let antidiag = occupancy & self.rays.antidiags[index];
 
                 self.ranks[index][Self::kindergarten(rank)]
                     | self.files[index][Self::kindergarten(file)]
@@ -124,16 +124,16 @@ impl AttackMasks {
                     | self.antidiags[index][Self::kindergarten(antidiag)]
             }
             PieceType::Rook => {
-                let rank = occupancy & self.line_masks.ranks[index];
-                let file = occupancy & self.line_masks.files[index];
+                let rank = occupancy & self.rays.ranks[index];
+                let file = occupancy & self.rays.files[index];
                 let file = file.anticlockwise();
 
                 self.ranks[index][Self::kindergarten(rank)]
                     | self.files[index][Self::kindergarten(file)]
             }
             PieceType::Bishop => {
-                let diagonal = occupancy & self.line_masks.diagonals[index];
-                let antidiag = occupancy & self.line_masks.antidiags[index];
+                let diagonal = occupancy & self.rays.diagonals[index];
+                let antidiag = occupancy & self.rays.antidiags[index];
 
                 self.diagonals[index][Self::kindergarten(diagonal)]
                     | self.antidiags[index][Self::kindergarten(antidiag)]
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn kings() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn knights() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn white_pawns() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 8..55 {
             let tile = Tile::from(index);
@@ -286,7 +286,7 @@ mod tests {
 
     #[test]
     fn black_pawns() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 8..55 {
             let tile = Tile::from(index);
@@ -310,14 +310,13 @@ mod tests {
 
     #[test]
     fn ranks_files_alone() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(index);
             assert_eq!(
-                (masks.line_masks.ranks[index as usize] | masks.line_masks.files[index as usize])
-                    ^ bitboard,
+                (masks.rays.ranks[index as usize] | masks.rays.files[index as usize]) ^ bitboard,
                 masks.get(PieceColor::White, PieceType::Rook, tile, bitboard)
             );
         }
@@ -325,7 +324,7 @@ mod tests {
 
     #[test]
     fn ranks_files_with_pieces() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
@@ -354,14 +353,13 @@ mod tests {
 
     #[test]
     fn diagonals_antidiags_alone() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(index);
             assert_eq!(
-                (masks.line_masks.diagonals[index as usize]
-                    | masks.line_masks.antidiags[index as usize])
+                (masks.rays.diagonals[index as usize] | masks.rays.antidiags[index as usize])
                     ^ bitboard,
                 masks.get(PieceColor::White, PieceType::Bishop, tile, bitboard)
             );
@@ -370,13 +368,13 @@ mod tests {
 
     #[test]
     fn diagonals_antidiags_with_pieces() {
-        let masks = AttackMasks::new();
+        let masks = Attacks::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(index);
 
-            let diagonal = masks.line_masks.diagonals[index as usize];
+            let diagonal = masks.rays.diagonals[index as usize];
             let diagonal_occupancies = (1..=diagonal.count())
                 .flat_map(|l| diagonal.into_iter().combinations(l))
                 .map(|ts| {
@@ -386,7 +384,7 @@ mod tests {
                 .filter(|b| (*b & bitboard).is_some())
                 .collect::<Vec<_>>();
 
-            let antidiag = masks.line_masks.antidiags[index as usize];
+            let antidiag = masks.rays.antidiags[index as usize];
             let antidiag_occupancies = (1..=antidiag.count())
                 .flat_map(|l| antidiag.into_iter().combinations(l))
                 .map(|ts| {

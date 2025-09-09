@@ -18,7 +18,7 @@ impl Board {
             if self.check_state[color] == CheckState::Double {
                 let mut attacks =
                     self.computed
-                        .attack_masks
+                        .attacks
                         .get(color, PieceType::King, king, occupancy);
 
                 // Don't attack friendly pieces
@@ -42,10 +42,7 @@ impl Board {
                 let color = piece.get_color();
                 let r#type = piece.get_type();
 
-                let mut attacks = self
-                    .computed
-                    .attack_masks
-                    .get(color, r#type, tile, occupancy);
+                let mut attacks = self.computed.attacks.get(color, r#type, tile, occupancy);
 
                 // Don't attack friendly pieces
                 attacks &= !friendlies;
@@ -102,13 +99,12 @@ impl Board {
                             let enemy_orthogonals = self.pieces[opponent | PieceType::Rook]
                                 | self.pieces[opponent | PieceType::Queen];
 
-                            let rook_attacks_from_king_without_pawns =
-                                self.computed.attack_masks.get(
-                                    color,
-                                    PieceType::Rook,
-                                    Tile::try_from(self.pieces[color | PieceType::King]).unwrap(),
-                                    occupancy ^ capturing_pawn ^ captured_pawn,
-                                );
+                            let rook_attacks_from_king_without_pawns = self.computed.attacks.get(
+                                color,
+                                PieceType::Rook,
+                                Tile::try_from(self.pieces[color | PieceType::King]).unwrap(),
+                                occupancy ^ capturing_pawn ^ captured_pawn,
+                            );
 
                             (rook_attacks_from_king_without_pawns & enemy_orthogonals).is_some()
                         };
@@ -145,7 +141,7 @@ impl Board {
                 if r#type != PieceType::King {
                     if let CheckState::Single(attacker) = self.check_state[color] {
                         // Try to resolve the check by blocking or capturing the attacker
-                        attacks &= self.computed.obstruction_masks.get(attacker, king) | attacker;
+                        attacks &= self.computed.betweens.get(attacker, king) | attacker;
                     }
                 }
 

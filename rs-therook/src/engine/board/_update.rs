@@ -2,27 +2,24 @@ use super::*;
 
 impl Board {
     pub fn update_rays(&mut self, color: PieceColor) {
-        let line_masks = &self.computed.line_masks;
-
         self.rays[color] = Bitboard::new();
 
         for r#type in [PieceType::Queen, PieceType::Rook, PieceType::Bishop] {
             for index in self.pieces[color | r#type] {
                 if r#type.is_orthogonal_slider() {
-                    self.rays[color] |= line_masks.ranks[index as usize];
-                    self.rays[color] |= line_masks.files[index as usize];
+                    self.rays[color] |= self.computed.rays.ranks[index as usize];
+                    self.rays[color] |= self.computed.rays.files[index as usize];
                 }
 
                 if r#type.is_diagonal_slider() {
-                    self.rays[color] |= line_masks.diagonals[index as usize];
-                    self.rays[color] |= line_masks.antidiags[index as usize];
+                    self.rays[color] |= self.computed.rays.diagonals[index as usize];
+                    self.rays[color] |= self.computed.rays.antidiags[index as usize];
                 }
             }
         }
     }
 
     pub fn update_attacks(&mut self, color: PieceColor) {
-        let attack_masks = &self.computed.attack_masks;
         let occupancy = self.colors[color] | self.colors[color.opposite()];
 
         self.attacks[color] = Bitboard::new();
@@ -37,7 +34,9 @@ impl Board {
         ] {
             for index in self.pieces[color | r#type] {
                 self.attacks[color] |=
-                    attack_masks.get(color, r#type, Tile::from(index), occupancy);
+                    self.computed
+                        .attacks
+                        .get(color, r#type, Tile::from(index), occupancy);
             }
         }
     }
@@ -77,7 +76,7 @@ impl Board {
         while pinner.is_some() {
             let u64 = u64::from(*pinner);
             let tile = Tile::from(u64.trailing_zeros() as u8);
-            self.pin_lines[color] |= self.computed.obstruction_masks.get(tile, king);
+            self.pin_lines[color] |= self.computed.betweens.get(tile, king);
             *pinner &= u64 - 1;
         }
     }

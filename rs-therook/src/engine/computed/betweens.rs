@@ -1,12 +1,12 @@
 use super::*;
 
-pub struct ObstructionMasks {
+pub struct Betweens {
     data: [[Bitboard; 64]; 64],
 }
 
-impl ObstructionMasks {
+impl Betweens {
     pub fn new() -> Self {
-        let mut masks = ObstructionMasks {
+        let mut masks = Betweens {
             data: [[Bitboard::new(); 64]; 64],
         };
 
@@ -45,15 +45,15 @@ mod tests {
 
     #[test]
     fn orthogonals() {
-        let attack_masks = AttackMasks::new();
-        let obstruction_masks = ObstructionMasks::new();
+        let attacks = Attacks::new();
+        let betweens = Betweens::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(index);
 
-            let reachable = attack_masks.get(PieceColor::White, PieceType::Rook, tile, bitboard);
-            let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
+            let reachable = attacks.get(PieceColor::White, PieceType::Rook, tile, bitboard);
+            let beside = attacks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
             for _index in reachable & !beside {
                 let _tile = Tile::from(_index);
@@ -65,7 +65,7 @@ mod tests {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(obstruction_masks.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(tile, _tile), obstructions);
                 } else {
                     // Same file
                     let mut obstructions = Bitboard::new();
@@ -73,7 +73,7 @@ mod tests {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(obstruction_masks.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(tile, _tile), obstructions);
                 }
             }
         }
@@ -81,28 +81,28 @@ mod tests {
 
     #[test]
     fn diagonals() {
-        let line_masks = LineMasks::new();
-        let attack_masks = AttackMasks::new();
-        let obstruction_masks = ObstructionMasks::new();
+        let rays = Rays::new();
+        let attacks = Attacks::new();
+        let betweens = Betweens::new();
 
         for index in 0..64u8 {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(index);
 
-            let reachable = attack_masks.get(PieceColor::White, PieceType::Bishop, tile, bitboard);
-            let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
+            let reachable = attacks.get(PieceColor::White, PieceType::Bishop, tile, bitboard);
+            let beside = attacks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
             for _index in reachable & !beside {
                 let _tile = Tile::from(_index);
 
-                if line_masks.diagonals[index as usize] == line_masks.diagonals[_index as usize] {
+                if rays.diagonals[index as usize] == rays.diagonals[_index as usize] {
                     // Same diagonal
                     let mut obstructions = Bitboard::new();
                     for i in ((index.min(_index) + 9)..index.max(_index)).step_by(9) {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(obstruction_masks.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(tile, _tile), obstructions);
                 } else {
                     // Same antidiag
                     let mut obstructions = Bitboard::new();
@@ -110,7 +110,7 @@ mod tests {
                         obstructions |= 1u64 << i;
                     }
 
-                    assert_eq!(obstruction_masks.get(tile, _tile), obstructions);
+                    assert_eq!(betweens.get(tile, _tile), obstructions);
                 }
             }
         }
@@ -118,8 +118,8 @@ mod tests {
 
     #[test]
     fn unreachable() {
-        let attack_masks = AttackMasks::new();
-        let obstruction_masks = ObstructionMasks::new();
+        let attacks = Attacks::new();
+        let betweens = Betweens::new();
 
         let empty = Bitboard::new();
 
@@ -127,15 +127,15 @@ mod tests {
             let tile = Tile::from(index);
             let bitboard = Bitboard::from(index);
 
-            let reachable = attack_masks.get(PieceColor::White, PieceType::Queen, tile, bitboard);
-            let beside = attack_masks.get(PieceColor::White, PieceType::King, tile, bitboard);
+            let reachable = attacks.get(PieceColor::White, PieceType::Queen, tile, bitboard);
+            let beside = attacks.get(PieceColor::White, PieceType::King, tile, bitboard);
 
             for _index in !reachable | beside {
-                assert_eq!(obstruction_masks.get(tile, Tile::from(_index)), empty);
+                assert_eq!(betweens.get(tile, Tile::from(_index)), empty);
             }
 
             for _index in reachable & !beside {
-                assert_ne!(obstruction_masks.get(tile, Tile::from(_index)), empty);
+                assert_ne!(betweens.get(tile, Tile::from(_index)), empty);
             }
         }
     }
