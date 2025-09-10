@@ -26,9 +26,11 @@ impl Board {
     }
 
     pub fn update_attacks(&mut self, color: PieceColor) {
-        let occupancy = self.colors[color] | self.colors[color.opposite()];
-
         let mut bitboard = Bitboard::new();
+
+        let enemy = color.opposite();
+        let enemy_king = self.pieces[enemy | PieceType::King];
+        let occupancy = self.colors[color] | self.colors[enemy];
 
         for r#type in [
             PieceType::King,
@@ -39,7 +41,17 @@ impl Board {
             PieceType::Pawn,
         ] {
             for square in self.pieces[color | r#type] {
-                bitboard |= self.computed.attacks.get(color, r#type, square, occupancy);
+                let attacks = self.computed.attacks.get(color, r#type, square, occupancy);
+
+                bitboard |= attacks;
+
+                if (attacks & enemy_king).is_some() {
+                    self.check_state[enemy] = match self.check_state[enemy] {
+                        CheckState::None => CheckState::Single(square),
+                        CheckState::Single(_) => CheckState::Double,
+                        CheckState::Double => unreachable!(),
+                    }
+                }
             }
         }
 
@@ -52,29 +64,26 @@ impl Board {
 
     // https://www.chessprogramming.org/Checks_and_Pinned_Pieces_%28Bitboards%29#Absolute_Pins
     pub fn update_pin_lines(&mut self, color: PieceColor) {
-        let opponent = color.opposite();
+        let mut bitboard = Bitboard::new();
 
-        let friendlies = self.colors[color];
-        let enemies = self.colors[opponent];
-        let occupied = friendlies | enemies;
-
+        let enemy = color.opposite();
         let king_square = u8::try_from(self.pieces[color | PieceType::King]).unwrap();
 
-        let mut bitboard = Bitboard::new();
+        let friendlies = self.colors[color];
+        let enemies = self.colors[enemy];
+        let occupancy = friendlies | enemies;
 
         let mut pinner = self
             .computed
-            .xray_orthogonal_attacks(occupied, friendlies, king_square);
-        pinner &=
-            self.pieces[opponent | PieceType::Queen] | self.pieces[opponent | PieceType::Rook];
+            .xray_orthogonal_attacks(occupancy, friendlies, king_square);
+        pinner &= self.pieces[enemy | PieceType::Queen] | self.pieces[enemy | PieceType::Rook];
 
         self.clear_pinner(&mut bitboard, &mut pinner, king_square);
 
         let mut pinner = self
             .computed
-            .xray_diagonal_attacks(occupied, friendlies, king_square);
-        pinner &=
-            self.pieces[opponent | PieceType::Queen] | self.pieces[opponent | PieceType::Bishop];
+            .xray_diagonal_attacks(occupancy, friendlies, king_square);
+        pinner &= self.pieces[enemy | PieceType::Queen] | self.pieces[enemy | PieceType::Bishop];
 
         self.clear_pinner(&mut bitboard, &mut pinner, king_square);
 

@@ -6,10 +6,10 @@ impl Board {
             let mut moves: Vec<Move> = vec![];
 
             let color = self.turn;
-            let opponent = self.turn.opposite();
+            let enemy = self.turn.opposite();
 
             let friendlies = self.colors[color];
-            let enemies = self.colors[opponent];
+            let enemies = self.colors[enemy];
             let occupancy = friendlies | enemies;
 
             let king_square = u8::try_from(self.pieces[color | PieceType::King]).unwrap();
@@ -25,7 +25,7 @@ impl Board {
                 attacks &= !friendlies;
 
                 // Don't allow King to move into attacked squares
-                attacks &= !self.attacks[opponent];
+                attacks &= !self.attacks[enemy];
 
                 for _square in attacks {
                     moves.push(Move::new(king_square, _square, MoveFlag::None));
@@ -48,14 +48,14 @@ impl Board {
 
                 // Don't allow King to move into attacked squares
                 if r#type == PieceType::King {
-                    attacks &= !self.attacks[opponent];
+                    attacks &= !self.attacks[enemy];
 
                     if self.castling[color | PieceType::King]
                         && self.check_state[color] == CheckState::None
                         && self.squares[square as usize + 1].is_none()
                         && self.squares[square as usize + 2].is_none()
-                        && (self.attacks[opponent] & Bitboard::from(square + 1)).is_none()
-                        && (self.attacks[opponent] & Bitboard::from(square + 2)).is_none()
+                        && (self.attacks[enemy] & Bitboard::from(square + 1)).is_none()
+                        && (self.attacks[enemy] & Bitboard::from(square + 2)).is_none()
                     {
                         attacks |= Bitboard::from(square + 2);
                     }
@@ -65,8 +65,8 @@ impl Board {
                         && self.squares[square as usize - 1].is_none()
                         && self.squares[square as usize - 2].is_none()
                         && self.squares[square as usize - 3].is_none()
-                        && (self.attacks[opponent] & Bitboard::from(square - 1)).is_none()
-                        && (self.attacks[opponent] & Bitboard::from(square - 2)).is_none()
+                        && (self.attacks[enemy] & Bitboard::from(square - 1)).is_none()
+                        && (self.attacks[enemy] & Bitboard::from(square - 2)).is_none()
                     {
                         attacks |= Bitboard::from(square - 2);
                     }
@@ -85,8 +85,8 @@ impl Board {
                             let capturing_pawn = square;
                             let captured_pawn = (square & 56) + (enpassant_square & 7);
 
-                            let enemy_orthogonals = self.pieces[opponent | PieceType::Rook]
-                                | self.pieces[opponent | PieceType::Queen];
+                            let enemy_orthogonals = self.pieces[enemy | PieceType::Rook]
+                                | self.pieces[enemy | PieceType::Queen];
 
                             let rook_attacks_from_king_without_pawns = self.computed.attacks.get(
                                 color,
@@ -212,7 +212,7 @@ mod tests {
         }
     }
 
-    mod en_passant {
+    mod enpassant {
         use super::*;
 
         #[test]
@@ -266,7 +266,7 @@ mod tests {
         }
     }
 
-    mod castling {
+    mod castle {
         use super::*;
 
         #[test]

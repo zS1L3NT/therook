@@ -69,12 +69,6 @@ impl Board {
         self.squares[square as usize] = Some(piece);
         self.pieces[piece] |= bitboard;
         self.colors[color] |= bitboard;
-
-        if piece.is_slider() {
-            self.update_rays(color);
-        }
-        // self.update_pin_lines(color);
-        // self.update_pin_lines(color.opposite());
     }
 
     pub fn clear_square(&mut self, square: u8, piece: Piece) {
@@ -84,27 +78,5 @@ impl Board {
         self.squares[square as usize] = None;
         self.pieces[piece] ^= bitboard;
         self.colors[color] ^= bitboard;
-
-        if piece.is_slider() {
-            self.update_rays(color);
-        }
-        // self.update_pin_lines(color);
-        // self.update_pin_lines(color.opposite());
-    }
-
-    pub fn move_piece(&mut self, from_square: u8, to_square: u8, piece: Piece) {
-        let bitboard = Bitboard::from(from_square) | Bitboard::from(to_square);
-        let color = piece.get_color();
-
-        self.squares[from_square as usize] = None;
-        self.squares[to_square as usize] = Some(piece);
-        self.pieces[piece] ^= bitboard;
-        self.colors[color] ^= bitboard;
-
-        if piece.is_slider() {
-            self.update_rays(color);
-        }
-        // self.update_pin_lines(color);
-        // self.update_pin_lines(color.opposite());
     }
 }
