@@ -2,179 +2,177 @@ use super::*;
 
 impl Board {
     pub fn calculate_moves(&self) -> Vec<Move> {
-        timed!("calculated moves", {
-            let mut moves: Vec<Move> = vec![];
+        let mut moves: Vec<Move> = vec![];
 
-            let color = self.turn;
-            let enemy = self.turn.opposite();
+        let color = self.turn;
+        let enemy = self.turn.opposite();
 
-            let friendlies = self.colors[color];
-            let enemies = self.colors[enemy];
-            let occupancy = friendlies | enemies;
+        let friendlies = self.colors[color];
+        let enemies = self.colors[enemy];
+        let occupancy = friendlies | enemies;
 
-            let king_square = u8::try_from(self.pieces[color | PieceType::King]).unwrap();
+        let king_square = u8::try_from(self.pieces[color | PieceType::King]).unwrap();
 
-            // Return early because double checks means only King can move
-            if self.check_state[color] == CheckState::Double {
-                let mut attacks =
-                    self.computed
-                        .attacks
-                        .get(color, PieceType::King, king_square, occupancy);
+        // Return early because double checks means only King can move
+        if self.check_state[color] == CheckState::Double {
+            let mut attacks =
+                self.computed
+                    .attacks
+                    .get(color, PieceType::King, king_square, occupancy);
 
-                // Don't attack friendly pieces
-                attacks &= !friendlies;
+            // Don't attack friendly pieces
+            attacks &= !friendlies;
 
-                // Don't allow King to move into attacked squares
+            // Don't allow King to move into attacked squares
+            attacks &= !self.attacks[enemy];
+
+            for _square in attacks {
+                moves.push(Move::new(king_square, _square, MoveFlag::None));
+            }
+
+            return moves;
+        }
+
+        for square in friendlies {
+            let bitboard = Bitboard::from(square);
+            let piece = self.squares[square as usize].unwrap();
+
+            let color = piece.get_color();
+            let r#type = piece.get_type();
+
+            let mut attacks = self.computed.attacks.get(color, r#type, square, occupancy);
+
+            // Don't attack friendly pieces
+            attacks &= !friendlies;
+
+            // Don't allow King to move into attacked squares
+            if r#type == PieceType::King {
                 attacks &= !self.attacks[enemy];
 
-                for _square in attacks {
-                    moves.push(Move::new(king_square, _square, MoveFlag::None));
+                if self.castling[color | PieceType::King]
+                    && self.check_state[color] == CheckState::None
+                    && self.squares[square as usize + 1].is_none()
+                    && self.squares[square as usize + 2].is_none()
+                    && (self.attacks[enemy] & Bitboard::from(square + 1)).is_none()
+                    && (self.attacks[enemy] & Bitboard::from(square + 2)).is_none()
+                {
+                    attacks |= Bitboard::from(square + 2);
                 }
 
-                return moves;
+                if self.castling[color | PieceType::Queen]
+                    && self.check_state[color] == CheckState::None
+                    && self.squares[square as usize - 1].is_none()
+                    && self.squares[square as usize - 2].is_none()
+                    && self.squares[square as usize - 3].is_none()
+                    && (self.attacks[enemy] & Bitboard::from(square - 1)).is_none()
+                    && (self.attacks[enemy] & Bitboard::from(square - 2)).is_none()
+                {
+                    attacks |= Bitboard::from(square - 2);
+                }
             }
 
-            for square in friendlies {
-                let bitboard = Bitboard::from(square);
-                let piece = self.squares[square as usize].unwrap();
+            if r#type == PieceType::Pawn {
+                let mut can_enpassant = false;
 
-                let color = piece.get_color();
-                let r#type = piece.get_type();
+                // Check for enpassant before removing empty attack squares, since enpassant technically attacks an empty square
+                if (attacks & self.enpassant).is_some() {
+                    let enpassant_square = u8::try_from(self.enpassant).unwrap();
 
-                let mut attacks = self.computed.attacks.get(color, r#type, square, occupancy);
+                    let diagonal_pinned = (self.pin_lines[color] & self.enpassant).is_some();
+                    let orthogonal_pinned = {
+                        // Annoyingly long algorithm to calculate orthogonal pins
+                        let capturing_pawn = square;
+                        let captured_pawn = (square & 56) + (enpassant_square & 7);
 
-                // Don't attack friendly pieces
-                attacks &= !friendlies;
+                        let enemy_orthogonals = self.pieces[enemy | PieceType::Rook]
+                            | self.pieces[enemy | PieceType::Queen];
 
-                // Don't allow King to move into attacked squares
-                if r#type == PieceType::King {
-                    attacks &= !self.attacks[enemy];
+                        let rook_attacks_from_king_without_pawns = self.computed.attacks.get(
+                            color,
+                            PieceType::Rook,
+                            king_square,
+                            occupancy ^ capturing_pawn ^ captured_pawn,
+                        );
 
-                    if self.castling[color | PieceType::King]
-                        && self.check_state[color] == CheckState::None
-                        && self.squares[square as usize + 1].is_none()
-                        && self.squares[square as usize + 2].is_none()
-                        && (self.attacks[enemy] & Bitboard::from(square + 1)).is_none()
-                        && (self.attacks[enemy] & Bitboard::from(square + 2)).is_none()
-                    {
-                        attacks |= Bitboard::from(square + 2);
-                    }
+                        (rook_attacks_from_king_without_pawns & enemy_orthogonals).is_some()
+                    };
 
-                    if self.castling[color | PieceType::Queen]
-                        && self.check_state[color] == CheckState::None
-                        && self.squares[square as usize - 1].is_none()
-                        && self.squares[square as usize - 2].is_none()
-                        && self.squares[square as usize - 3].is_none()
-                        && (self.attacks[enemy] & Bitboard::from(square - 1)).is_none()
-                        && (self.attacks[enemy] & Bitboard::from(square - 2)).is_none()
-                    {
-                        attacks |= Bitboard::from(square - 2);
+                    can_enpassant = !diagonal_pinned && !orthogonal_pinned;
+                }
+
+                // Only attack when there is an enemy piece
+                attacks &= enemies;
+
+                // With the one exception of enpassant
+                if can_enpassant {
+                    attacks |= self.enpassant;
+                }
+
+                if color == PieceColor::White && self.squares[square as usize + 8].is_none() {
+                    attacks |= bitboard << 8;
+
+                    if square >> 3 == 1 && self.squares[square as usize + 16].is_none() {
+                        attacks |= bitboard << 16;
                     }
                 }
+
+                if color == PieceColor::Black && self.squares[square as usize - 8].is_none() {
+                    attacks |= bitboard >> 8;
+
+                    if square >> 3 == 6 && self.squares[square as usize - 16].is_none() {
+                        attacks |= bitboard >> 16;
+                    }
+                }
+            }
+
+            // If in check and the piece is not a king
+            if r#type != PieceType::King {
+                if let CheckState::Single(attacker) = self.check_state[color] {
+                    // Try to resolve the check by blocking or capturing the attacker
+                    attacks &= self.computed.betweens.get(attacker, king_square) | attacker;
+                }
+            }
+
+            // If piece is pinned, only allow moves that keep piece within pin line
+            if (self.pin_lines[color] & Bitboard::from(square)).is_some() {
+                attacks &= self.pin_lines[color];
+            }
+
+            for _square in attacks {
+                let _rank = _square >> 3;
+                let _file = _square & 7;
+
+                let mut flag = MoveFlag::None;
 
                 if r#type == PieceType::Pawn {
-                    let mut can_enpassant = false;
-
-                    // Check for enpassant before removing empty attack squares, since enpassant technically attacks an empty square
-                    if (attacks & self.enpassant).is_some() {
-                        let enpassant_square = u8::try_from(self.enpassant).unwrap();
-
-                        let diagonal_pinned = (self.pin_lines[color] & self.enpassant).is_some();
-                        let orthogonal_pinned = {
-                            // Annoyingly long algorithm to calculate orthogonal pins
-                            let capturing_pawn = square;
-                            let captured_pawn = (square & 56) + (enpassant_square & 7);
-
-                            let enemy_orthogonals = self.pieces[enemy | PieceType::Rook]
-                                | self.pieces[enemy | PieceType::Queen];
-
-                            let rook_attacks_from_king_without_pawns = self.computed.attacks.get(
-                                color,
-                                PieceType::Rook,
-                                king_square,
-                                occupancy ^ capturing_pawn ^ captured_pawn,
-                            );
-
-                            (rook_attacks_from_king_without_pawns & enemy_orthogonals).is_some()
-                        };
-
-                        can_enpassant = !diagonal_pinned && !orthogonal_pinned;
+                    if square.abs_diff(_square) == 16 {
+                        flag = MoveFlag::PawnDash;
                     }
 
-                    // Only attack when there is an enemy piece
-                    attacks &= enemies;
-
-                    // With the one exception of enpassant
-                    if can_enpassant {
-                        attacks |= self.enpassant;
+                    if self.enpassant.is_some()
+                        && _file == (u8::try_from(self.enpassant).unwrap() & 7)
+                    {
+                        flag = MoveFlag::EnPassant;
                     }
 
-                    if color == PieceColor::White && self.squares[square as usize + 8].is_none() {
-                        attacks |= bitboard << 8;
-
-                        if square >> 3 == 1 && self.squares[square as usize + 16].is_none() {
-                            attacks |= bitboard << 16;
-                        }
-                    }
-
-                    if color == PieceColor::Black && self.squares[square as usize - 8].is_none() {
-                        attacks |= bitboard >> 8;
-
-                        if square >> 3 == 6 && self.squares[square as usize - 16].is_none() {
-                            attacks |= bitboard >> 16;
-                        }
+                    if _rank == 0 || _rank == 7 {
+                        moves.push(Move::new(square, _square, MoveFlag::PromoteQueen));
+                        moves.push(Move::new(square, _square, MoveFlag::PromoteRook));
+                        moves.push(Move::new(square, _square, MoveFlag::PromoteBishop));
+                        moves.push(Move::new(square, _square, MoveFlag::PromoteKnight));
+                        continue;
                     }
                 }
 
-                // If in check and the piece is not a king
-                if r#type != PieceType::King {
-                    if let CheckState::Single(attacker) = self.check_state[color] {
-                        // Try to resolve the check by blocking or capturing the attacker
-                        attacks &= self.computed.betweens.get(attacker, king_square) | attacker;
-                    }
+                if r#type == PieceType::King && square.abs_diff(_square) == 2 {
+                    flag = MoveFlag::Castle;
                 }
 
-                // If piece is pinned, only allow moves that keep piece within pin line
-                if (self.pin_lines[color] & Bitboard::from(square)).is_some() {
-                    attacks &= self.pin_lines[color];
-                }
-
-                for _square in attacks {
-                    let _rank = _square >> 3;
-                    let _file = _square & 7;
-
-                    let mut flag = MoveFlag::None;
-
-                    if r#type == PieceType::Pawn {
-                        if square.abs_diff(_square) == 16 {
-                            flag = MoveFlag::PawnDash;
-                        }
-
-                        if self.enpassant.is_some()
-                            && _file == (u8::try_from(self.enpassant).unwrap() & 7)
-                        {
-                            flag = MoveFlag::EnPassant;
-                        }
-
-                        if _rank == 0 || _rank == 7 {
-                            moves.push(Move::new(square, _square, MoveFlag::PromoteQueen));
-                            moves.push(Move::new(square, _square, MoveFlag::PromoteRook));
-                            moves.push(Move::new(square, _square, MoveFlag::PromoteBishop));
-                            moves.push(Move::new(square, _square, MoveFlag::PromoteKnight));
-                            continue;
-                        }
-                    }
-
-                    if r#type == PieceType::King && square.abs_diff(_square) == 2 {
-                        flag = MoveFlag::Castle;
-                    }
-
-                    moves.push(Move::new(square, _square, flag));
-                }
+                moves.push(Move::new(square, _square, flag));
             }
+        }
 
-            moves
-        })
+        moves
     }
 }
 

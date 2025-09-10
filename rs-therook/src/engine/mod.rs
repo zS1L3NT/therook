@@ -3,6 +3,7 @@ mod board;
 mod computed;
 mod r#move;
 mod piece;
+mod perft;
 
 pub use super::*;
 pub use bitboard::*;
