@@ -95,23 +95,23 @@ impl From<&Board> for Fen {
 
             fen.push(' ');
 
-            if board.castling.can(CastlingDirection::WhiteKing) {
+            if board.castling[WHITE_KING] {
                 fen.push('K');
             }
 
-            if board.castling.can(CastlingDirection::WhiteQueen) {
+            if board.castling[WHITE_QUEEN] {
                 fen.push('Q');
             }
 
-            if board.castling.can(CastlingDirection::BlackKing) {
+            if board.castling[BLACK_KING] {
                 fen.push('k');
             }
 
-            if board.castling.can(CastlingDirection::BlackQueen) {
+            if board.castling[BLACK_QUEEN] {
                 fen.push('q');
             }
 
-            if u8::from(board.castling) == 0 {
+            if board.castling == [false; 4] {
                 fen.push('-');
             }
 
@@ -249,14 +249,13 @@ impl TryInto<Board> for Fen {
                         section = ActiveColor(true)
                     }
                     CastlingRights(state) => {
-                        let castling = u8::from(board.castling);
                         match char {
-                            'K' => board.castling |= CastlingDirection::WhiteKing,
-                            'Q' => board.castling |= CastlingDirection::WhiteQueen,
-                            'k' => board.castling |= CastlingDirection::BlackKing,
-                            'q' => board.castling |= CastlingDirection::BlackQueen,
+                            'K' => board.castling[WHITE_KING] = true,
+                            'Q' => board.castling[WHITE_QUEEN] = true,
+                            'k' => board.castling[BLACK_KING] = true,
+                            'q' => board.castling[BLACK_QUEEN] = true,
                             '-' => {
-                                if castling != 0 {
+                                if board.castling != [false; 4] {
                                     return Err(FenError("Invalid castling rights string".into()));
                                 }
                             }

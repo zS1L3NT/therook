@@ -1,7 +1,7 @@
 use super::*;
 
 impl Piece {
-    fn get_index(&self) -> usize {
+    fn get_pieces_index(&self) -> usize {
         match *self {
             WHITE_KING => 0,
             WHITE_QUEEN => 1,
@@ -18,18 +18,41 @@ impl Piece {
             _ => panic!("Unknown piece type: {self:?}"),
         }
     }
+
+    fn get_castle_index(&self) -> usize {
+        match *self {
+            WHITE_KING => 0,
+            WHITE_QUEEN => 1,
+            BLACK_KING => 2,
+            BLACK_QUEEN => 3,
+            _ => panic!("Unknown castling type: {self:?}"),
+        }
+    }
 }
 
 impl<T> std::ops::Index<Piece> for [T; 12] {
     type Output = T;
     fn index(&self, piece: Piece) -> &Self::Output {
-        &self[piece.get_index()]
+        &self[piece.get_pieces_index()]
     }
 }
 
 impl<T> std::ops::IndexMut<Piece> for [T; 12] {
     fn index_mut(&mut self, index: Piece) -> &mut Self::Output {
-        &mut self[index.get_index()]
+        &mut self[index.get_pieces_index()]
+    }
+}
+
+impl std::ops::Index<Piece> for [bool; 4] {
+    type Output = bool;
+    fn index(&self, index: Piece) -> &Self::Output {
+        &self[index.get_castle_index()]
+    }
+}
+
+impl std::ops::IndexMut<Piece> for [bool; 4] {
+    fn index_mut(&mut self, index: Piece) -> &mut Self::Output {
+        &mut self[index.get_castle_index()]
     }
 }
 

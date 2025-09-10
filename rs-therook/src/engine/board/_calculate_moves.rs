@@ -50,7 +50,7 @@ impl Board {
                 if r#type == PieceType::King {
                     attacks &= !self.attacks[opponent];
 
-                    if self.castling.can((color | PieceType::King).into())
+                    if self.castling[color | PieceType::King]
                         && self.check_state[color] == CheckState::None
                         && self.squares[square as usize + 1].is_none()
                         && self.squares[square as usize + 2].is_none()
@@ -60,7 +60,7 @@ impl Board {
                         attacks |= Bitboard::from(square + 2);
                     }
 
-                    if self.castling.can((color | PieceType::Queen).into())
+                    if self.castling[color | PieceType::Queen]
                         && self.check_state[color] == CheckState::None
                         && self.squares[square as usize - 1].is_none()
                         && self.squares[square as usize - 2].is_none()

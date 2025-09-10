@@ -4,19 +4,17 @@ mod _index;
 mod _make_move;
 mod _undo_move;
 mod _update;
-mod castling;
 mod check_state;
 
 use super::*;
 use crate::interfaces::*;
-pub use castling::*;
 pub use check_state::*;
 
 pub struct Board {
     // From FEN
     pub squares: [Option<Piece>; 64],
     pub turn: PieceColor,
-    pub castling: Castling,
+    pub castling: [bool; 4],
     pub enpassant: Bitboard,
     pub halfmove: u8,
     pub fullmove: u8,
@@ -39,7 +37,7 @@ impl Board {
         Board {
             squares: [None; 64],
             turn: PieceColor::White,
-            castling: Castling::new(),
+            castling: [false; 4],
             enpassant: Bitboard::new(),
             halfmove: 0,
             fullmove: 1,
