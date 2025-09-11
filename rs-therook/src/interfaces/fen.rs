@@ -42,6 +42,8 @@ impl std::fmt::Debug for Fen {
 
 impl From<&Board> for Fen {
     fn from(board: &Board) -> Self {
+        let state = board.get_state();
+
         timed!("dumping board to fen", {
             let mut fen = String::new();
 
@@ -95,30 +97,30 @@ impl From<&Board> for Fen {
 
             fen.push(' ');
 
-            if board.castling[WHITE_KING] {
+            if state.castling[WHITE_KING] {
                 fen.push('K');
             }
 
-            if board.castling[WHITE_QUEEN] {
+            if state.castling[WHITE_QUEEN] {
                 fen.push('Q');
             }
 
-            if board.castling[BLACK_KING] {
+            if state.castling[BLACK_KING] {
                 fen.push('k');
             }
 
-            if board.castling[BLACK_QUEEN] {
+            if state.castling[BLACK_QUEEN] {
                 fen.push('q');
             }
 
-            if board.castling == [false; 4] {
+            if state.castling == [false; 4] {
                 fen.push('-');
             }
 
             fen.push(' ');
 
-            if board.enpassant.is_some() {
-                let square = board.enpassant.into_iter().find_or_first(|_| true).unwrap();
+            if state.enpassant.is_some() {
+                let square = state.enpassant.into_iter().find_or_first(|_| true).unwrap();
                 fen.push_str(&format!("{square:?}"));
             } else {
                 fen.push('-');
@@ -126,11 +128,11 @@ impl From<&Board> for Fen {
 
             fen.push(' ');
 
-            fen.push_str(&format!("{}", board.halfmove));
+            fen.push_str(&format!("{}", state.halfmove));
 
             fen.push(' ');
 
-            fen.push_str(&format!("{}", board.fullmove));
+            fen.push_str(&format!("{}", state.fullmove));
 
             Fen(fen)
         })
@@ -143,6 +145,7 @@ impl TryInto<Board> for Fen {
     fn try_into(self) -> Result<Board, FenError> {
         timed!("parsing fen into board", {
             let mut board = Board::new();
+            let mut board_state = BoardState::new();
             let mut section = PiecePlacement(7, 0);
 
             for char in self.0.trim().chars() {
@@ -250,12 +253,12 @@ impl TryInto<Board> for Fen {
                     }
                     CastlingRights(state) => {
                         match char {
-                            'K' => board.castling[WHITE_KING] = true,
-                            'Q' => board.castling[WHITE_QUEEN] = true,
-                            'k' => board.castling[BLACK_KING] = true,
-                            'q' => board.castling[BLACK_QUEEN] = true,
+                            'K' => board_state.castling[WHITE_KING] = true,
+                            'Q' => board_state.castling[WHITE_QUEEN] = true,
+                            'k' => board_state.castling[BLACK_KING] = true,
+                            'q' => board_state.castling[BLACK_QUEEN] = true,
                             '-' => {
-                                if board.castling != [false; 4] {
+                                if board_state.castling != [false; 4] {
                                     return Err(FenError("Invalid castling rights string".into()));
                                 }
                             }
@@ -303,7 +306,7 @@ impl TryInto<Board> for Fen {
                             let rank = rank.to_digit(10).unwrap() as u8;
                             let file = files.iter().position(|r| *r == file).unwrap() as u8;
 
-                            board.enpassant = Bitboard::from(((rank - 1) * 8) + file);
+                            board_state.enpassant = Bitboard::from(((rank - 1) * 8) + file);
 
                             section = HalfMoveClock("".into());
                         } else {
@@ -325,7 +328,7 @@ impl TryInto<Board> for Fen {
 
                         match string.parse::<u8>() {
                             Ok(number) => {
-                                board.halfmove = number;
+                                board_state.halfmove = number;
 
                                 section = FullMoveNumber("".into());
 
@@ -349,7 +352,7 @@ impl TryInto<Board> for Fen {
 
                         match string.parse::<u8>() {
                             Ok(number) => {
-                                board.fullmove = number;
+                                board_state.fullmove = number;
 
                                 section = Finished;
 
@@ -365,6 +368,8 @@ impl TryInto<Board> for Fen {
                     }
                 }
             }
+
+            board.states.push(board_state);
 
             for color in [PieceColor::White, PieceColor::Black] {
                 board.update_rays(color);

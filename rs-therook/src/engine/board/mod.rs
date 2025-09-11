@@ -5,53 +5,56 @@ mod _make_move;
 mod _undo_move;
 mod _update;
 mod check_state;
+mod state;
 
 use super::*;
 use crate::interfaces::*;
 pub use check_state::*;
+pub use state::*;
 
 pub struct Board {
-    // From FEN
-    pub squares: [Option<Piece>; 64],
-    pub turn: PieceColor,
-    pub castling: [bool; 4],
-    pub enpassant: Bitboard,
-    pub halfmove: u8,
-    pub fullmove: u8,
-
     // Pre-computed data
     pub computed: Computed,
 
-    // Extra state of the board
+    // Core information
+    pub turn: PieceColor,
+    pub squares: [Option<Piece>; 64],
+
+    // Calculated on the fly
     pub pieces: [Bitboard; 12],
     pub colors: [Bitboard; 2],
     pub rays: [Bitboard; 2],
     pub attacks: [Bitboard; 2],
     pub pin_lines: [Bitboard; 2],
     pub check_state: [CheckState; 2],
-    pub captured: Option<Piece>,
+
+    // For undoing and restoration of state
+    pub states: Vec<BoardState>,
 }
 
 impl Board {
     pub fn new() -> Self {
         Board {
-            squares: [None; 64],
-            turn: PieceColor::White,
-            castling: [false; 4],
-            enpassant: Bitboard::new(),
-            halfmove: 0,
-            fullmove: 1,
-
             computed: Computed::new(),
+
+            turn: PieceColor::White,
+            squares: [None; 64],
 
             pieces: [Bitboard::new(); 12],
             colors: [Bitboard::new(); 2],
             rays: [Bitboard::new(); 2],
             attacks: [Bitboard::new(); 2],
-            check_state: [CheckState::None; 2],
             pin_lines: [Bitboard::new(); 2],
-            captured: None,
+            check_state: [CheckState::None; 2],
+
+            states: vec![],
         }
+    }
+
+    pub fn get_state(&self) -> &BoardState {
+        self.states
+            .last()
+            .unwrap_or_else(|| panic!("No board state..."))
     }
 
     pub fn fen(string: String) -> Result<Self, FenError> {

@@ -13,17 +13,19 @@ impl Board {
         let color = piece.get_color();
         let enemy = color.opposite();
 
-        self.captured = if flag == MoveFlag::EnPassant {
+        let mut state = self.get_state().clone();
+
+        state.captured = if flag == MoveFlag::EnPassant {
             Some(color.opposite() | PieceType::Pawn)
         } else {
             self.squares[end_square as usize]
         };
-        let captured_type = self.captured.map(|p| p.get_type());
+        let captured_type = state.captured.map(|p| p.get_type());
 
         self.clear_square(start_square, piece);
 
         // Remove the captured tile, the piece on the end square or enpassant square
-        if let Some(captured) = self.captured {
+        if let Some(captured) = state.captured {
             self.clear_square(
                 if flag == MoveFlag::EnPassant {
                     (start_square & 56) + (end_square & 7)
@@ -44,12 +46,12 @@ impl Board {
         // Update enpassant square
         if flag == MoveFlag::PawnDash {
             if color == PieceColor::White {
-                self.enpassant = Bitboard::from((start_square & 56) + (end_square & 7) + 8)
+                state.enpassant = Bitboard::from((start_square & 56) + (end_square & 7) + 8)
             } else {
-                self.enpassant = Bitboard::from((start_square & 56) + (end_square & 7) - 8)
+                state.enpassant = Bitboard::from((start_square & 56) + (end_square & 7) - 8)
             }
-        } else if self.enpassant.is_some() {
-            self.enpassant = Bitboard::new()
+        } else if state.enpassant.is_some() {
+            state.enpassant = Bitboard::new()
         }
 
         // Castling rights & move castled rook
@@ -66,29 +68,29 @@ impl Board {
             self.set_square(to_square, piece);
         }
 
-        if self.castling != [false; 4] {
+        if state.castling != [false; 4] {
             // Check if we still can castle
-            if self.castling[color | PieceType::King] || self.castling[color | PieceType::Queen] {
+            if state.castling[color | PieceType::King] || state.castling[color | PieceType::Queen] {
                 if piece_type == PieceType::King {
-                    self.castling[color | PieceType::King] = false;
-                    self.castling[color | PieceType::Queen] = false;
+                    state.castling[color | PieceType::King] = false;
+                    state.castling[color | PieceType::Queen] = false;
                 }
 
                 if piece_type == PieceType::Rook {
                     match start_square & 7 {
-                        0 => self.castling[color | PieceType::Queen] = false,
-                        7 => self.castling[color | PieceType::King] = false,
+                        0 => state.castling[color | PieceType::Queen] = false,
+                        7 => state.castling[color | PieceType::King] = false,
                         _ => unreachable!(),
                     }
                 }
             }
 
             // Check if opponent can still castle
-            if self.castling[enemy | PieceType::King] || self.castling[enemy | PieceType::Queen] {
+            if state.castling[enemy | PieceType::King] || state.castling[enemy | PieceType::Queen] {
                 if captured_type == Some(PieceType::Rook) {
                     match end_square & 7 {
-                        0 => self.castling[enemy | PieceType::Queen] = false,
-                        7 => self.castling[enemy | PieceType::King] = false,
+                        0 => state.castling[enemy | PieceType::Queen] = false,
+                        7 => state.castling[enemy | PieceType::King] = false,
                         _ => unreachable!(),
                     }
                 }
@@ -96,12 +98,12 @@ impl Board {
         }
 
         // Increment halfmove & fullmove
-        if piece_type != PieceType::Pawn && self.captured.is_none() {
-            self.halfmove += 1;
+        if piece_type != PieceType::Pawn && state.captured.is_none() {
+            state.halfmove += 1;
         }
 
         if color == PieceColor::Black {
-            self.fullmove += 1;
+            state.fullmove += 1;
         }
 
         // Update the extra state of the board
@@ -114,7 +116,8 @@ impl Board {
             self.update_pin_lines(color);
         }
 
-        // Flip the turn
+        self.states.push(state);
+
         self.turn = enemy;
     }
 }
@@ -144,10 +147,10 @@ mod tests {
             let mut board = Board::initial();
 
             board.make_move(Move::new(square!(E2), square!(E4), MoveFlag::PawnDash));
-            assert_eq!(board.enpassant, bitboard!(E3));
+            assert_eq!(board.get_state().enpassant, bitboard!(E3));
 
             board.make_move(Move::new(square!(D7), square!(D5), MoveFlag::PawnDash));
-            assert_eq!(board.enpassant, bitboard!(D6));
+            assert_eq!(board.get_state().enpassant, bitboard!(D6));
         }
 
         #[test]
@@ -155,10 +158,10 @@ mod tests {
             let mut board = Board::initial();
 
             board.make_move(Move::new(square!(E2), square!(E4), MoveFlag::PawnDash));
-            assert_eq!(board.enpassant, bitboard!(E3));
+            assert_eq!(board.get_state().enpassant, bitboard!(E3));
 
             board.make_move(Move::new(square!(E4), square!(E5), MoveFlag::None));
-            assert_eq!(board.enpassant, Bitboard::new());
+            assert_eq!(board.get_state().enpassant, Bitboard::new());
         }
     }
 
@@ -179,7 +182,7 @@ mod tests {
 
             castling[WHITE_KING] = false;
             castling[WHITE_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(E8), square!(G8), MoveFlag::Castle));
 
@@ -190,7 +193,7 @@ mod tests {
 
             castling[BLACK_KING] = false;
             castling[BLACK_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
         }
 
         #[test]
@@ -208,7 +211,7 @@ mod tests {
 
             castling[WHITE_KING] = false;
             castling[WHITE_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(E8), square!(C8), MoveFlag::Castle));
 
@@ -220,7 +223,7 @@ mod tests {
 
             castling[BLACK_KING] = false;
             castling[BLACK_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
         }
 
         #[test]
@@ -231,22 +234,22 @@ mod tests {
             board.make_move(Move::new(square!(H1), square!(G1), MoveFlag::None));
 
             castling[WHITE_KING] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(H8), square!(G8), MoveFlag::None));
 
             castling[BLACK_KING] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(A1), square!(B1), MoveFlag::None));
 
             castling[WHITE_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(A8), square!(B8), MoveFlag::None));
 
             castling[BLACK_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
         }
 
         #[test]
@@ -258,13 +261,13 @@ mod tests {
 
             castling[WHITE_KING] = false;
             castling[WHITE_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(E8), square!(E7), MoveFlag::None));
 
             castling[BLACK_KING] = false;
             castling[BLACK_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
         }
 
         #[test]
@@ -276,22 +279,22 @@ mod tests {
             board.make_move(Move::new(square!(E5), square!(H8), MoveFlag::None));
 
             castling[BLACK_KING] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(E4), square!(H1), MoveFlag::None));
 
             castling[WHITE_KING] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(D5), square!(A8), MoveFlag::None));
 
             castling[BLACK_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
 
             board.make_move(Move::new(square!(D4), square!(A1), MoveFlag::None));
 
             castling[WHITE_QUEEN] = false;
-            assert_eq!(board.castling, castling);
+            assert_eq!(board.get_state().castling, castling);
         }
     }
 

@@ -10,6 +10,7 @@ impl Board {
         let friendlies = self.colors[color];
         let enemies = self.colors[enemy];
         let occupancy = friendlies | enemies;
+        let state = self.get_state();
 
         let king_square = u8::try_from(self.pieces[color | PieceType::King]).unwrap();
 
@@ -41,6 +42,7 @@ impl Board {
             let r#type = piece.get_type();
 
             let mut attacks = self.computed.attacks.get(color, r#type, square, occupancy);
+            let mut can_enpassant = false;
 
             // Don't attack friendly pieces
             attacks &= !friendlies;
@@ -49,7 +51,7 @@ impl Board {
             if r#type == PieceType::King {
                 attacks &= !self.attacks[enemy];
 
-                if self.castling[color | PieceType::King]
+                if state.castling[color | PieceType::King]
                     && self.check_state[color] == CheckState::None
                     && self.squares[square as usize + 1].is_none()
                     && self.squares[square as usize + 2].is_none()
@@ -59,7 +61,7 @@ impl Board {
                     attacks |= Bitboard::from(square + 2);
                 }
 
-                if self.castling[color | PieceType::Queen]
+                if state.castling[color | PieceType::Queen]
                     && self.check_state[color] == CheckState::None
                     && self.squares[square as usize - 1].is_none()
                     && self.squares[square as usize - 2].is_none()
@@ -72,13 +74,11 @@ impl Board {
             }
 
             if r#type == PieceType::Pawn {
-                let mut can_enpassant = false;
-
                 // Check for enpassant before removing empty attack squares, since enpassant technically attacks an empty square
-                if (attacks & self.enpassant).is_some() {
-                    let enpassant_square = u8::try_from(self.enpassant).unwrap();
+                if (attacks & state.enpassant).is_some() {
+                    let enpassant_square = u8::try_from(state.enpassant).unwrap();
 
-                    let diagonal_pinned = (self.pin_lines[color] & self.enpassant).is_some();
+                    let diagonal_pinned = (self.pin_lines[color] & state.enpassant).is_some();
                     let orthogonal_pinned = {
                         // Annoyingly long algorithm to calculate orthogonal pins
                         let capturing_pawn = square;
@@ -105,7 +105,7 @@ impl Board {
 
                 // With the one exception of enpassant
                 if can_enpassant {
-                    attacks |= self.enpassant;
+                    attacks |= state.enpassant;
                 }
 
                 if color == PieceColor::White && self.squares[square as usize + 8].is_none() {
@@ -149,8 +149,8 @@ impl Board {
                         flag = MoveFlag::PawnDash;
                     }
 
-                    if self.enpassant.is_some()
-                        && _file == (u8::try_from(self.enpassant).unwrap() & 7)
+                    if state.enpassant.is_some()
+                        && _file == (u8::try_from(state.enpassant).unwrap() & 7)
                     {
                         flag = MoveFlag::EnPassant;
                     }
