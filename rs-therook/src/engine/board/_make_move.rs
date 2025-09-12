@@ -4,7 +4,11 @@ impl Board {
     pub fn make_move(&mut self, r#move: Move) {
         let start_square = r#move.get_start();
         let end_square = r#move.get_end();
+
         let flag = r#move.get_flag();
+        let is_enpassant = flag == MoveFlag::EnPassant;
+        let is_castle = flag == MoveFlag::Castle;
+        let is_pawn_dash = flag == MoveFlag::PawnDash;
         let promotion_piece_type = r#move.get_promote_piece_type();
 
         let piece = self.squares[start_square as usize].unwrap();
@@ -15,7 +19,7 @@ impl Board {
 
         let mut state = self.get_state().clone();
 
-        state.captured = if flag == MoveFlag::EnPassant {
+        state.captured = if is_enpassant {
             Some(color.opposite() | PieceType::Pawn)
         } else {
             self.squares[end_square as usize]
@@ -27,7 +31,7 @@ impl Board {
         // Remove the captured tile, the piece on the end square or enpassant square
         if let Some(captured) = state.captured {
             self.clear_square(
-                if flag == MoveFlag::EnPassant {
+                if is_enpassant {
                     (start_square & 56) + (end_square & 7)
                 } else {
                     end_square
@@ -44,7 +48,7 @@ impl Board {
         }
 
         // Update enpassant square
-        if flag == MoveFlag::PawnDash {
+        if is_pawn_dash {
             if color == PieceColor::White {
                 state.enpassant = Bitboard::from((start_square & 56) + (end_square & 7) + 8)
             } else {
@@ -55,7 +59,7 @@ impl Board {
         }
 
         // Castling rights & move castled rook
-        if flag == MoveFlag::Castle {
+        if is_castle {
             let (from_square, to_square, piece) = match end_square {
                 square!(G1) => (square!(H1), square!(F1), WHITE_ROOK),
                 square!(C1) => (square!(A1), square!(D1), WHITE_ROOK),
