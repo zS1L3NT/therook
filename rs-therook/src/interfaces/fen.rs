@@ -14,14 +14,7 @@ pub enum FenSection {
     Finished,
 }
 
-pub struct FenError(String);
-
-impl std::fmt::Debug for FenError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
+#[derive(PartialEq, Eq)]
 pub struct Fen(String);
 
 impl Fen {
@@ -140,12 +133,12 @@ impl From<&Board> for Fen {
 }
 
 impl TryInto<Board> for Fen {
-    type Error = FenError;
+    type Error = String;
 
-    fn try_into(self) -> Result<Board, FenError> {
+    fn try_into(self) -> Result<Board, Self::Error> {
         timed!("parsing fen into board", {
             let mut board = Board::new();
-            let mut board_state = BoardState::new();
+            let mut state = BoardState::new();
             let mut section = PiecePlacement(7, 0);
 
             for char in self.0.trim().chars() {
@@ -154,7 +147,9 @@ impl TryInto<Board> for Fen {
                         if char.is_numeric() {
                             let number = char.to_digit(10).unwrap() as i8;
                             if number + *file > 8 {
-                                return Err(FenError(format!("Rank {rank} exceeds 8 files")));
+                                return Err(format!(
+                                    "Invalid piece placement: Rank {rank} exceeds 8 files"
+                                ));
                             }
 
                             *file += number;
@@ -164,7 +159,9 @@ impl TryInto<Board> for Fen {
 
                         if char.is_alphabetic() {
                             if *file == 8 {
-                                return Err(FenError(format!("Rank {rank} exceeds 8 files")));
+                                return Err(format!(
+                                    "Invalid piece placement: Rank {rank} exceeds 8 files"
+                                ));
                             }
 
                             let square = (*rank * 8 + *file) as u8;
@@ -172,7 +169,10 @@ impl TryInto<Board> for Fen {
                             match char {
                                 'K' => {
                                     if board.pieces[WHITE_KING].is_some() {
-                                        return Err(FenError("White King already exists".into()));
+                                        return Err(
+                                            "Invalid piece placement: White King already exists"
+                                                .into(),
+                                        );
                                     }
 
                                     board.set_square(square, WHITE_KING);
@@ -184,7 +184,10 @@ impl TryInto<Board> for Fen {
                                 'P' => board.set_square(square, WHITE_PAWN),
                                 'k' => {
                                     if board.pieces[BLACK_KING].is_some() {
-                                        return Err(FenError("Black King already exists".into()));
+                                        return Err(
+                                            "Invalid piece placement: Black King already exists"
+                                                .into(),
+                                        );
                                     }
 
                                     board.set_square(square, BLACK_KING);
@@ -195,9 +198,9 @@ impl TryInto<Board> for Fen {
                                 'n' => board.set_square(square, BLACK_KNIGHT),
                                 'p' => board.set_square(square, BLACK_PAWN),
                                 _ => {
-                                    return Err(FenError(format!(
-                                        "Invalid piece character {char}"
-                                    )));
+                                    return Err(format!(
+                                        "Invalid piece placement: Unknown character {char}"
+                                    ));
                                 }
                             }
 
@@ -208,9 +211,9 @@ impl TryInto<Board> for Fen {
 
                         if char == '/' {
                             if *file != 8 {
-                                return Err(FenError(format!(
-                                    "Rank {rank} does not contain 8 files"
-                                )));
+                                return Err(format!(
+                                    "Invalid piece placement: Rank {rank} does not contain 8 files"
+                                ));
                             }
 
                             *rank -= 1;
@@ -221,9 +224,7 @@ impl TryInto<Board> for Fen {
 
                         if char == ' ' {
                             if *rank != -1 && *file != 8 {
-                                return Err(FenError(
-                                    "Not all ranks and files have been filled up".into(),
-                                ));
+                                return Err("Invalid piece placement: Not all ranks and files have been filled up".into());
                             }
 
                             section = ActiveColor(false);
@@ -231,47 +232,58 @@ impl TryInto<Board> for Fen {
                             continue;
                         }
 
-                        return Err(FenError("Invalid piece placement character".into()));
+                        return Err(format!("Invalid piece placement: Unknown character {char}"));
                     }
-                    ActiveColor(state) => {
+                    ActiveColor(is_set) => {
                         match char {
                             'w' => board.turn = PieceColor::White,
                             'b' => board.turn = PieceColor::Black,
                             ' ' => {
-                                if !*state {
-                                    return Err(FenError("Unset active color".into()));
+                                if !*is_set {
+                                    return Err("Unset active color".into());
                                 }
 
                                 section = CastlingRights(false);
 
                                 continue;
                             }
-                            _ => return Err(FenError("Invalid active color character".into())),
+                            _ => {
+                                return Err(format!(
+                                    "Invalid active color: Unknown character {char}"
+                                ));
+                            }
                         }
 
                         section = ActiveColor(true)
                     }
-                    CastlingRights(state) => {
+                    CastlingRights(is_set) => {
                         match char {
-                            'K' => board_state.castling[WHITE_KING] = true,
-                            'Q' => board_state.castling[WHITE_QUEEN] = true,
-                            'k' => board_state.castling[BLACK_KING] = true,
-                            'q' => board_state.castling[BLACK_QUEEN] = true,
+                            'K' => state.castling[WHITE_KING] = true,
+                            'Q' => state.castling[WHITE_QUEEN] = true,
+                            'k' => state.castling[BLACK_KING] = true,
+                            'q' => state.castling[BLACK_QUEEN] = true,
                             '-' => {
-                                if board_state.castling != [false; 4] {
-                                    return Err(FenError("Invalid castling rights string".into()));
+                                if state.castling != [false; 4] {
+                                    return Err("Invalid castling rights: Cannot use - when setting other castling rights".into());
                                 }
                             }
                             ' ' => {
-                                if !*state {
-                                    return Err(FenError("Unset castling rights".into()));
+                                if !*is_set {
+                                    return Err(
+                                        "Invalid castling rights: No castling rights provided"
+                                            .into(),
+                                    );
                                 }
 
                                 section = PossibleEnPassantTargets("".into());
 
                                 continue;
                             }
-                            _ => return Err(FenError("Invalid castling rights character".into())),
+                            _ => {
+                                return Err(format!(
+                                    "Invalid castling rights: Unknown character {char}"
+                                ));
+                            }
                         }
 
                         section = CastlingRights(true)
@@ -284,9 +296,7 @@ impl TryInto<Board> for Fen {
                         }
 
                         if string.is_empty() {
-                            return Err(FenError(
-                                "Invalid possible en passant targets string".into(),
-                            ));
+                            return Err("Invalid possible en passant targets: No possible en passant target provided".into());
                         }
 
                         if string == "-" {
@@ -306,12 +316,12 @@ impl TryInto<Board> for Fen {
                             let rank = rank.to_digit(10).unwrap() as u8;
                             let file = files.iter().position(|r| *r == file).unwrap() as u8;
 
-                            board_state.enpassant = Bitboard::from(((rank - 1) * 8) + file);
+                            state.enpassant = Bitboard::from(((rank - 1) * 8) + file);
 
                             section = HalfMoveClock("".into());
                         } else {
-                            return Err(FenError(
-                                "Invalid possible en passant targets string".into(),
+                            return Err(format!(
+                                "Invalid possible en passant targets: Unknown square {string}",
                             ));
                         }
                     }
@@ -323,19 +333,23 @@ impl TryInto<Board> for Fen {
                         }
 
                         if string.is_empty() {
-                            return Err(FenError("Invalid half move clock string".into()));
+                            return Err(
+                                "Invalid half move clock: No half move clock provided".into()
+                            );
                         }
 
                         match string.parse::<u8>() {
                             Ok(number) => {
-                                board_state.halfmove = number;
+                                state.halfmove = number;
 
                                 section = FullMoveNumber("".into());
 
                                 continue;
                             }
                             Err(_) => {
-                                return Err(FenError("Invalid half move clock string".into()));
+                                return Err(format!(
+                                    "Invalid half move clock: Invalid number {string}"
+                                ));
                             }
                         }
                     }
@@ -347,29 +361,36 @@ impl TryInto<Board> for Fen {
                         }
 
                         if string.is_empty() {
-                            return Err(FenError("Invalid full move number string".into()));
+                            return Err(
+                                "Invalid full move number: No full move number provided".into()
+                            );
                         }
 
                         match string.parse::<u8>() {
                             Ok(number) => {
-                                board_state.fullmove = number;
+                                state.fullmove = number;
 
                                 section = Finished;
 
                                 continue;
                             }
                             Err(_) => {
-                                return Err(FenError("Invalid full move number string".into()));
+                                return Err(format!(
+                                    "Invalid full move number: Invalid number {string}"
+                                ));
                             }
                         }
                     }
                     Finished => {
-                        return Err(FenError("Invalid characters at the end".into()));
+                        return Err(
+                            "Invalid FEN: Extra characters provided at the end of the string"
+                                .into(),
+                        );
                     }
                 }
             }
 
-            board.states.push(board_state);
+            board.states.push(state);
 
             for color in [PieceColor::White, PieceColor::Black] {
                 board.update_rays(color);

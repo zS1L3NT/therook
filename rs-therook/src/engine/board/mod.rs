@@ -57,7 +57,7 @@ impl Board {
             .unwrap_or_else(|| panic!("No board state..."))
     }
 
-    pub fn fen(string: String) -> Result<Self, FenError> {
+    pub fn fen(string: String) -> Result<Self, <Fen as TryInto<Self>>::Error> {
         Fen::new(string).try_into()
     }
 
