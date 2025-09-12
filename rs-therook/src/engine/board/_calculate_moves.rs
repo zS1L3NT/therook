@@ -169,7 +169,7 @@ impl Board {
                     }
 
                     if state.enpassant.is_some()
-                        && _file == (u8::try_from(state.enpassant).unwrap() & 7)
+                        && u8::try_from(state.enpassant).unwrap() == _square
                     {
                         flag = MoveFlag::EnPassant;
                     }
