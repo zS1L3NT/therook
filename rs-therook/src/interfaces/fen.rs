@@ -113,10 +113,10 @@ impl From<&Board> for String {
     }
 }
 
-impl TryFrom<String> for Board {
+impl TryFrom<&str> for Board {
     type Error = String;
 
-    fn try_from(fen: String) -> Result<Board, Self::Error> {
+    fn try_from(fen: &str) -> Result<Board, Self::Error> {
         timed!("parsing fen into board", {
             let mut board = Board::new();
             let mut state = BoardState::new();
@@ -384,10 +384,8 @@ impl TryFrom<String> for Board {
     }
 }
 
-impl TryFrom<&str> for Board {
-    type Error = String;
-
-    fn try_from(fen: &str) -> Result<Board, Self::Error> {
-        fen.to_string().try_into()
+impl PartialEq<str> for Board {
+    fn eq(&self, other: &str) -> bool {
+        String::from(self) == *other
     }
 }
