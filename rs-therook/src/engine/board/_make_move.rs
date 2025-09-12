@@ -136,10 +136,6 @@ mod tests {
                     .unwrap();
 
             board.make_move(Move::new(square!(E5), square!(D6), MoveFlag::EnPassant));
-
-            assert_eq!(board.squares[square!(D5)], None);
-            assert_eq!(board.squares[square!(E5)], None);
-            assert_eq!(board.squares[square!(D6)], Some(WHITE_PAWN));
             assert_eq!(
                 &board,
                 "rnbqkbnr/ppp1pppp/3P4/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
@@ -151,14 +147,12 @@ mod tests {
             let mut board = Board::initial();
 
             board.make_move(Move::new(square!(E2), square!(E4), MoveFlag::PawnDash));
-            assert_eq!(board.get_state().enpassant, bitboard!(E3));
             assert_eq!(
                 &board,
                 "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
             );
 
             board.make_move(Move::new(square!(D7), square!(D5), MoveFlag::PawnDash));
-            assert_eq!(board.get_state().enpassant, bitboard!(D6));
             assert_eq!(
                 &board,
                 "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2"
@@ -170,14 +164,12 @@ mod tests {
             let mut board = Board::initial();
 
             board.make_move(Move::new(square!(E2), square!(E4), MoveFlag::PawnDash));
-            assert_eq!(board.get_state().enpassant, bitboard!(E3));
             assert_eq!(
                 &board,
                 "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
             );
 
             board.make_move(Move::new(square!(D7), square!(D6), MoveFlag::None));
-            assert_eq!(board.get_state().enpassant, Bitboard::new());
             assert_eq!(
                 &board,
                 "rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
@@ -192,30 +184,11 @@ mod tests {
         fn kingside() {
             let mut board =
                 Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
-            let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E1), square!(G1), MoveFlag::Castle));
-
-            assert_eq!(board.squares[square!(E1)], None);
-            assert_eq!(board.squares[square!(F1)], Some(WHITE_ROOK));
-            assert_eq!(board.squares[square!(G1)], Some(WHITE_KING));
-            assert_eq!(board.squares[square!(H1)], None);
-
-            castling[WHITE_KING] = false;
-            castling[WHITE_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1");
 
             board.make_move(Move::new(square!(E8), square!(G8), MoveFlag::Castle));
-
-            assert_eq!(board.squares[square!(E8)], None);
-            assert_eq!(board.squares[square!(F8)], Some(BLACK_ROOK));
-            assert_eq!(board.squares[square!(G8)], Some(BLACK_KING));
-            assert_eq!(board.squares[square!(H8)], None);
-
-            castling[BLACK_KING] = false;
-            castling[BLACK_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r4rk1/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 w - - 2 2");
         }
 
@@ -223,32 +196,11 @@ mod tests {
         fn queenside() {
             let mut board =
                 Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
-            let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E1), square!(C1), MoveFlag::Castle));
-
-            assert_eq!(board.squares[square!(A1)], None);
-            assert_eq!(board.squares[square!(B1)], None);
-            assert_eq!(board.squares[square!(C1)], Some(WHITE_KING));
-            assert_eq!(board.squares[square!(D1)], Some(WHITE_ROOK));
-            assert_eq!(board.squares[square!(E1)], None);
-
-            castling[WHITE_KING] = false;
-            castling[WHITE_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R b kq - 1 1");
 
             board.make_move(Move::new(square!(E8), square!(C8), MoveFlag::Castle));
-
-            assert_eq!(board.squares[square!(A8)], None);
-            assert_eq!(board.squares[square!(B8)], None);
-            assert_eq!(board.squares[square!(C8)], Some(BLACK_KING));
-            assert_eq!(board.squares[square!(D8)], Some(BLACK_ROOK));
-            assert_eq!(board.squares[square!(E8)], None);
-
-            castling[BLACK_KING] = false;
-            castling[BLACK_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "2kr3r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R w - - 2 2");
         }
 
@@ -256,30 +208,17 @@ mod tests {
         fn moving_rook_loses_rights() {
             let mut board =
                 Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
-            let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(H1), square!(G1), MoveFlag::None));
-
-            castling[WHITE_KING] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K1R1 b Qkq - 1 1");
 
             board.make_move(Move::new(square!(H8), square!(G8), MoveFlag::None));
-
-            castling[BLACK_KING] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k1r1/pppppppp/8/8/8/8/PPPPPPPP/R3K1R1 w Qq - 2 2");
 
             board.make_move(Move::new(square!(A1), square!(B1), MoveFlag::None));
-
-            castling[WHITE_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k1r1/pppppppp/8/8/8/8/PPPPPPPP/1R2K1R1 b q - 3 2");
 
             board.make_move(Move::new(square!(A8), square!(B8), MoveFlag::None));
-
-            castling[BLACK_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(
                 &board,
                 "1r2k1r1/pppppppp/8/8/8/8/PPPPPPPP/1R2K1R1 w - - 4 3"
@@ -290,50 +229,28 @@ mod tests {
         fn moving_king_loses_rights() {
             let mut board =
                 Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
-            let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E1), square!(D1), MoveFlag::None));
-
-            castling[WHITE_KING] = false;
-            castling[WHITE_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R2K3R b kq - 1 1");
 
             board.make_move(Move::new(square!(E8), square!(D8), MoveFlag::None));
-
-            castling[BLACK_KING] = false;
-            castling[BLACK_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r2k3r/pppppppp/8/8/8/8/PPPPPPPP/R2K3R w - - 2 2");
         }
 
         #[test]
         fn capturing_rook_revokes_rights() {
             let mut board = Board::try_from("r3k2r/8/8/3BB3/3bb3/8/8/R3K2R w KQkq - 0 1").unwrap();
-            let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E5), square!(H8), MoveFlag::None));
-
-            castling[BLACK_KING] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k2B/8/8/3B4/3bb3/8/8/R3K2R b KQq - 0 1");
 
             board.make_move(Move::new(square!(E4), square!(H1), MoveFlag::None));
-
-            castling[WHITE_KING] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "r3k2B/8/8/3B4/3b4/8/8/R3K2b w Qq - 0 2");
 
             board.make_move(Move::new(square!(D5), square!(A8), MoveFlag::None));
-
-            castling[BLACK_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "B3k2B/8/8/8/3b4/8/8/R3K2b b Q - 0 2");
 
             board.make_move(Move::new(square!(D4), square!(A1), MoveFlag::None));
-
-            castling[WHITE_QUEEN] = false;
-            assert_eq!(board.get_state().castling, castling);
             assert_eq!(&board, "B3k2B/8/8/8/8/8/8/b3K2b w - - 0 3");
         }
     }
@@ -346,9 +263,6 @@ mod tests {
             let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteQueen));
-
-            assert_eq!(board.squares[square!(A7)], None);
-            assert_eq!(board.squares[square!(A8)], Some(WHITE_QUEEN));
             assert_eq!(&board, "Q3k3/8/8/8/8/8/8/4K3 b - - 0 1");
         }
 
@@ -357,9 +271,6 @@ mod tests {
             let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteRook));
-
-            assert_eq!(board.squares[square!(A7)], None);
-            assert_eq!(board.squares[square!(A8)], Some(WHITE_ROOK));
             assert_eq!(&board, "R3k3/8/8/8/8/8/8/4K3 b - - 0 1");
         }
 
@@ -368,9 +279,6 @@ mod tests {
             let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteBishop));
-
-            assert_eq!(board.squares[square!(A7)], None);
-            assert_eq!(board.squares[square!(A8)], Some(WHITE_BISHOP));
             assert_eq!(&board, "B3k3/8/8/8/8/8/8/4K3 b - - 0 1");
         }
 
@@ -379,9 +287,6 @@ mod tests {
             let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteKnight));
-
-            assert_eq!(board.squares[square!(A7)], None);
-            assert_eq!(board.squares[square!(A8)], Some(WHITE_KNIGHT));
             assert_eq!(&board, "N3k3/8/8/8/8/8/8/4K3 b - - 0 1");
         }
 
@@ -390,9 +295,6 @@ mod tests {
             let mut board = Board::try_from("1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(B8), MoveFlag::PromoteQueen));
-
-            assert_eq!(board.squares[square!(A7)], None);
-            assert_eq!(board.squares[square!(B8)], Some(WHITE_QUEEN));
             assert_eq!(&board, "1Q2k3/8/8/8/8/8/8/4K3 b - - 0 1");
         }
     }
