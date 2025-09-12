@@ -14,26 +14,7 @@ pub enum FenSection {
     Finished,
 }
 
-#[derive(PartialEq, Eq)]
-pub struct Fen(String);
-
-impl Fen {
-    pub fn new(string: String) -> Self {
-        Fen(string)
-    }
-
-    pub fn initial() -> Self {
-        Fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".into())
-    }
-}
-
-impl std::fmt::Debug for Fen {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl From<&Board> for Fen {
+impl From<&Board> for String {
     fn from(board: &Board) -> Self {
         let state = board.get_state();
 
@@ -127,21 +108,21 @@ impl From<&Board> for Fen {
 
             fen.push_str(&format!("{}", state.fullmove));
 
-            Fen(fen)
+            fen
         })
     }
 }
 
-impl TryInto<Board> for Fen {
+impl TryFrom<String> for Board {
     type Error = String;
 
-    fn try_into(self) -> Result<Board, Self::Error> {
+    fn try_from(fen: String) -> Result<Board, Self::Error> {
         timed!("parsing fen into board", {
             let mut board = Board::new();
             let mut state = BoardState::new();
             let mut section = PiecePlacement(7, 0);
 
-            for char in self.0.trim().chars() {
+            for char in fen.trim().chars() {
                 match &mut section {
                     PiecePlacement(rank, file) => {
                         if char.is_numeric() {
@@ -400,5 +381,13 @@ impl TryInto<Board> for Fen {
 
             Ok(board)
         })
+    }
+}
+
+impl TryFrom<&str> for Board {
+    type Error = String;
+
+    fn try_from(fen: &str) -> Result<Board, Self::Error> {
+        fen.to_string().try_into()
     }
 }

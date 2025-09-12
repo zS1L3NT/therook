@@ -8,7 +8,6 @@ mod check_state;
 mod state;
 
 use super::*;
-use crate::interfaces::*;
 pub use check_state::*;
 pub use state::*;
 
@@ -57,12 +56,10 @@ impl Board {
             .unwrap_or_else(|| panic!("No board state..."))
     }
 
-    pub fn fen(string: String) -> Result<Self, <Fen as TryInto<Self>>::Error> {
-        Fen::new(string).try_into()
-    }
-
     pub fn initial() -> Self {
-        Fen::initial().try_into().unwrap()
+        "rnbqkbnr/ppp1pppp/3P4/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+            .try_into()
+            .unwrap()
     }
 
     pub fn set_square(&mut self, square: u8, piece: Piece) {

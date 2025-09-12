@@ -132,7 +132,7 @@ mod tests {
         #[test]
         fn captured_pawn_disappears() {
             let mut board =
-                Board::fen("rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 1".into())
+                Board::try_from("rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 1")
                     .unwrap();
 
             board.make_move(Move::new(square!(E5), square!(D6), MoveFlag::EnPassant));
@@ -140,6 +140,10 @@ mod tests {
             assert_eq!(board.squares[square!(D5)], None);
             assert_eq!(board.squares[square!(E5)], None);
             assert_eq!(board.squares[square!(D6)], Some(WHITE_PAWN));
+            assert_eq!(
+                String::from(&board),
+                "rnbqkbnr/ppp1pppp/3P4/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+            )
         }
 
         #[test]
@@ -170,7 +174,7 @@ mod tests {
 
         #[test]
         fn kingside() {
-            let mut board = Board::fen("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1".into()).unwrap();
+            let mut board = Board::try_from("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1").unwrap();
             let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E1), square!(G1), MoveFlag::Castle));
@@ -198,7 +202,7 @@ mod tests {
 
         #[test]
         fn queenside() {
-            let mut board = Board::fen("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1".into()).unwrap();
+            let mut board = Board::try_from("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1").unwrap();
             let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E1), square!(C1), MoveFlag::Castle));
@@ -228,7 +232,7 @@ mod tests {
 
         #[test]
         fn moving_rook_loses_rights() {
-            let mut board = Board::fen("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1".into()).unwrap();
+            let mut board = Board::try_from("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1").unwrap();
             let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(H1), square!(G1), MoveFlag::None));
@@ -254,7 +258,7 @@ mod tests {
 
         #[test]
         fn moving_king_loses_rights() {
-            let mut board = Board::fen("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1".into()).unwrap();
+            let mut board = Board::try_from("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1").unwrap();
             let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E1), square!(E2), MoveFlag::None));
@@ -272,8 +276,7 @@ mod tests {
 
         #[test]
         fn capturing_rook_revokes_rights() {
-            let mut board =
-                Board::fen("r3k2r/8/8/3BB3/3bb3/8/8/R3K2R w KQkq - 0 1".into()).unwrap();
+            let mut board = Board::try_from("r3k2r/8/8/3BB3/3bb3/8/8/R3K2R w KQkq - 0 1").unwrap();
             let mut castling = [true; 4];
 
             board.make_move(Move::new(square!(E5), square!(H8), MoveFlag::None));
@@ -303,7 +306,7 @@ mod tests {
 
         #[test]
         fn queen() {
-            let mut board = Board::fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1".into()).unwrap();
+            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteQueen));
 
@@ -313,7 +316,7 @@ mod tests {
 
         #[test]
         fn rook() {
-            let mut board = Board::fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1".into()).unwrap();
+            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteRook));
 
@@ -323,7 +326,7 @@ mod tests {
 
         #[test]
         fn bishop() {
-            let mut board = Board::fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1".into()).unwrap();
+            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteBishop));
 
@@ -333,7 +336,7 @@ mod tests {
 
         #[test]
         fn knight() {
-            let mut board = Board::fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1".into()).unwrap();
+            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteKnight));
 
@@ -343,7 +346,7 @@ mod tests {
 
         #[test]
         fn queen_with_capture() {
-            let mut board = Board::fen("1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1".into()).unwrap();
+            let mut board = Board::try_from("1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
 
             board.make_move(Move::new(square!(A7), square!(B8), MoveFlag::PromoteQueen));
 
