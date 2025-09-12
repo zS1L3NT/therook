@@ -5,8 +5,6 @@ mod _utils;
 
 pub use _utils::*;
 
-use super::*;
-
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Bitboard(u64);
 

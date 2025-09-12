@@ -17,12 +17,10 @@ pub struct Computed {
 
 impl Computed {
     pub fn new() -> Self {
-        timed!("computed statics", {
-            Computed {
-                rays: Rays::new(),
-                attacks: Attacks::new(),
-                betweens: Betweens::new(),
-            }
-        })
+        Computed {
+            rays: Rays::new(),
+            attacks: Attacks::new(),
+            betweens: Betweens::new(),
+        }
     }
 }
