@@ -57,7 +57,7 @@ impl Board {
     }
 
     pub fn initial() -> Self {
-        "rnbqkbnr/ppp1pppp/3P4/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
             .try_into()
             .unwrap()
     }

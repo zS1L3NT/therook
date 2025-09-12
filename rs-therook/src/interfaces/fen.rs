@@ -95,7 +95,11 @@ impl From<&Board> for String {
 
             if state.enpassant.is_some() {
                 let square = state.enpassant.into_iter().find_or_first(|_| true).unwrap();
-                fen.push_str(&format!("{square:?}"));
+                fen.push_str(&format!(
+                    "{}{}",
+                    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'][square as usize & 7],
+                    ['1', '2', '3', '4', '5', '6', '7', '8'][square as usize >> 3]
+                ))
             } else {
                 fen.push('-');
             }
@@ -386,6 +390,6 @@ impl TryFrom<&str> for Board {
 
 impl PartialEq<str> for Board {
     fn eq(&self, other: &str) -> bool {
-        String::from(self) == *other
+        String::from(self) == String::from(other)
     }
 }

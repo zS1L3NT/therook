@@ -128,8 +128,27 @@ impl Board {
             // If in check and the piece is not a king
             if r#type != PieceType::King {
                 if let CheckState::Single(attacker) = self.check_state[color] {
-                    // Try to resolve the check by blocking or capturing the attacker
-                    attacks &= self.computed.betweens.get(attacker, king_square) | attacker;
+                    // Try to resolve the check by blocking the attack
+                    let mut resolving = self.computed.betweens.get(attacker, king_square);
+
+                    // Or capturing the attacker
+                    resolving |= attacker;
+
+                    // If can enpassant and the attacker is the enpassant target
+                    if can_enpassant {
+                        let enpassant_square = u8::try_from(state.enpassant).unwrap();
+
+                        // Rank of the current piece and file of the enpassant square gives the piece to be captured
+                        let capture_square = (square & 56) + (enpassant_square & 7);
+
+                        // Set the resolving square to the enpassant square instead of the capture square
+                        if attacker == capture_square {
+                            resolving ^= capture_square;
+                            resolving |= enpassant_square;
+                        }
+                    }
+
+                    attacks &= resolving;
                 }
             }
 

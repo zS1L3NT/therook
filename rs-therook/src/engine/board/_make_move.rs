@@ -143,7 +143,7 @@ mod tests {
             assert_eq!(
                 &board,
                 "rnbqkbnr/ppp1pppp/3P4/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
-            )
+            );
         }
 
         #[test]
@@ -154,14 +154,14 @@ mod tests {
             assert_eq!(board.get_state().enpassant, bitboard!(E3));
             assert_eq!(
                 &board,
-                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
             );
 
             board.make_move(Move::new(square!(D7), square!(D5), MoveFlag::PawnDash));
             assert_eq!(board.get_state().enpassant, bitboard!(D6));
             assert_eq!(
                 &board,
-                "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+                "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2"
             );
         }
 
@@ -173,7 +173,7 @@ mod tests {
             assert_eq!(board.get_state().enpassant, bitboard!(E3));
             assert_eq!(
                 &board,
-                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
             );
 
             board.make_move(Move::new(square!(D7), square!(D6), MoveFlag::None));
