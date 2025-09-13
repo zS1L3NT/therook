@@ -11,6 +11,7 @@ use super::*;
 pub use check_state::*;
 pub use state::*;
 
+#[derive(Clone)]
 pub struct Board<'a> {
     // Pre-computed data
     pub computed: &'a Computed,
