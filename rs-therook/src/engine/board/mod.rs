@@ -11,9 +11,9 @@ use super::*;
 pub use check_state::*;
 pub use state::*;
 
-pub struct Board {
+pub struct Board<'a> {
     // Pre-computed data
-    pub computed: Computed,
+    pub computed: &'a Computed,
 
     // Core information
     pub turn: PieceColor,
@@ -31,10 +31,10 @@ pub struct Board {
     pub states: Vec<BoardState>,
 }
 
-impl Board {
-    pub fn new() -> Self {
+impl<'a> Board<'a> {
+    pub fn new(computed: &'a Computed) -> Self {
         Board {
-            computed: Computed::new(),
+            computed,
 
             turn: PieceColor::White,
             squares: [None; 64],
@@ -50,16 +50,17 @@ impl Board {
         }
     }
 
+    pub fn initial(computed: &'a Computed) -> Self {
+        Board::from_fen(
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            computed,
+        )
+    }
+
     pub fn get_state(&self) -> &BoardState {
         self.states
             .last()
             .unwrap_or_else(|| panic!("No board state..."))
-    }
-
-    pub fn initial() -> Self {
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-            .try_into()
-            .unwrap()
     }
 
     pub fn set_square(&mut self, square: u8, piece: Piece) {

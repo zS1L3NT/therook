@@ -14,7 +14,7 @@ pub enum FenSection {
     Finished,
 }
 
-impl From<&Board> for String {
+impl From<&Board<'_>> for String {
     fn from(board: &Board) -> Self {
         let state = board.get_state();
 
@@ -114,11 +114,9 @@ impl From<&Board> for String {
     }
 }
 
-impl TryFrom<&str> for Board {
-    type Error = String;
-
-    fn try_from(fen: &str) -> Result<Board, Self::Error> {
-        let mut board = Board::new();
+impl<'a> Board<'a> {
+    pub fn from_fen(fen: &str, computed: &'a Computed) -> Board<'a> {
+        let mut board = Board::new(computed);
         let mut state = BoardState::new();
         let mut section = PiecePlacement(7, 0);
 
@@ -128,9 +126,7 @@ impl TryFrom<&str> for Board {
                     if char.is_numeric() {
                         let number = char.to_digit(10).unwrap() as i8;
                         if number + *file > 8 {
-                            return Err(format!(
-                                "Invalid piece placement: Rank {rank} exceeds 8 files"
-                            ));
+                            panic!("Invalid piece placement: Rank {rank} exceeds 8 files");
                         }
 
                         *file += number;
@@ -140,9 +136,7 @@ impl TryFrom<&str> for Board {
 
                     if char.is_alphabetic() {
                         if *file == 8 {
-                            return Err(format!(
-                                "Invalid piece placement: Rank {rank} exceeds 8 files"
-                            ));
+                            panic!("Invalid piece placement: Rank {rank} exceeds 8 files");
                         }
 
                         let square = (*rank * 8 + *file) as u8;
@@ -150,9 +144,7 @@ impl TryFrom<&str> for Board {
                         match char {
                             'K' => {
                                 if board.pieces[WHITE_KING].is_some() {
-                                    return Err(
-                                        "Invalid piece placement: White King already exists".into(),
-                                    );
+                                    panic!("Invalid piece placement: White King already exists");
                                 }
 
                                 board.set_square(square, WHITE_KING);
@@ -164,9 +156,7 @@ impl TryFrom<&str> for Board {
                             'P' => board.set_square(square, WHITE_PAWN),
                             'k' => {
                                 if board.pieces[BLACK_KING].is_some() {
-                                    return Err(
-                                        "Invalid piece placement: Black King already exists".into(),
-                                    );
+                                    panic!("Invalid piece placement: Black King already exists");
                                 }
 
                                 board.set_square(square, BLACK_KING);
@@ -177,9 +167,7 @@ impl TryFrom<&str> for Board {
                             'n' => board.set_square(square, BLACK_KNIGHT),
                             'p' => board.set_square(square, BLACK_PAWN),
                             _ => {
-                                return Err(format!(
-                                    "Invalid piece placement: Unknown character {char}"
-                                ));
+                                panic!("Invalid piece placement: Unknown character {char}");
                             }
                         }
 
@@ -190,9 +178,7 @@ impl TryFrom<&str> for Board {
 
                     if char == '/' {
                         if *file != 8 {
-                            return Err(format!(
-                                "Invalid piece placement: Rank {rank} does not contain 8 files"
-                            ));
+                            panic!("Invalid piece placement: Rank {rank} does not contain 8 files");
                         }
 
                         *rank -= 1;
@@ -203,7 +189,9 @@ impl TryFrom<&str> for Board {
 
                     if char == ' ' {
                         if *rank != -1 && *file != 8 {
-                            return Err("Invalid piece placement: Not all ranks and files have been filled up".into());
+                            panic!(
+                                "Invalid piece placement: Not all ranks and files have been filled up"
+                            );
                         }
 
                         section = ActiveColor(false);
@@ -211,7 +199,7 @@ impl TryFrom<&str> for Board {
                         continue;
                     }
 
-                    return Err(format!("Invalid piece placement: Unknown character {char}"));
+                    panic!("Invalid piece placement: Unknown character {char}");
                 }
                 ActiveColor(is_set) => {
                     match char {
@@ -219,7 +207,7 @@ impl TryFrom<&str> for Board {
                         'b' => board.turn = PieceColor::Black,
                         ' ' => {
                             if !*is_set {
-                                return Err("Unset active color".into());
+                                panic!("Unset active color");
                             }
 
                             section = CastlingRights(false);
@@ -227,7 +215,7 @@ impl TryFrom<&str> for Board {
                             continue;
                         }
                         _ => {
-                            return Err(format!("Invalid active color: Unknown character {char}"));
+                            panic!("Invalid active color: Unknown character {char}");
                         }
                     }
 
@@ -241,14 +229,14 @@ impl TryFrom<&str> for Board {
                         'q' => state.castling[BLACK_QUEEN] = true,
                         '-' => {
                             if state.castling != [false; 4] {
-                                return Err("Invalid castling rights: Cannot use - when setting other castling rights".into());
+                                panic!(
+                                    "Invalid castling rights: Cannot use - when setting other castling rights"
+                                );
                             }
                         }
                         ' ' => {
                             if !*is_set {
-                                return Err(
-                                    "Invalid castling rights: No castling rights provided".into()
-                                );
+                                panic!("Invalid castling rights: No castling rights provided");
                             }
 
                             section = PossibleEnPassantTargets("".into());
@@ -256,9 +244,7 @@ impl TryFrom<&str> for Board {
                             continue;
                         }
                         _ => {
-                            return Err(format!(
-                                "Invalid castling rights: Unknown character {char}"
-                            ));
+                            panic!("Invalid castling rights: Unknown character {char}");
                         }
                     }
 
@@ -272,7 +258,9 @@ impl TryFrom<&str> for Board {
                     }
 
                     if string.is_empty() {
-                        return Err("Invalid possible en passant targets: No possible en passant target provided".into());
+                        panic!(
+                            "Invalid possible en passant targets: No possible en passant target provided"
+                        );
                     }
 
                     if string == "-" {
@@ -296,9 +284,7 @@ impl TryFrom<&str> for Board {
 
                         section = HalfMoveClock("".into());
                     } else {
-                        return Err(format!(
-                            "Invalid possible en passant targets: Unknown square {string}",
-                        ));
+                        panic!("Invalid possible en passant targets: Unknown square {string}",);
                     }
                 }
                 HalfMoveClock(string) => {
@@ -309,7 +295,7 @@ impl TryFrom<&str> for Board {
                     }
 
                     if string.is_empty() {
-                        return Err("Invalid half move clock: No half move clock provided".into());
+                        panic!("Invalid half move clock: No half move clock provided");
                     }
 
                     match string.parse::<u8>() {
@@ -321,9 +307,7 @@ impl TryFrom<&str> for Board {
                             continue;
                         }
                         Err(_) => {
-                            return Err(format!(
-                                "Invalid half move clock: Invalid number {string}"
-                            ));
+                            panic!("Invalid half move clock: Invalid number {string}");
                         }
                     }
                 }
@@ -335,7 +319,7 @@ impl TryFrom<&str> for Board {
                     }
 
                     if string.is_empty() {
-                        return Err("Invalid full move number: No full move number provided".into());
+                        panic!("Invalid full move number: No full move number provided");
                     }
 
                     match string.parse::<u8>() {
@@ -347,16 +331,12 @@ impl TryFrom<&str> for Board {
                             continue;
                         }
                         Err(_) => {
-                            return Err(format!(
-                                "Invalid full move number: Invalid number {string}"
-                            ));
+                            panic!("Invalid full move number: Invalid number {string}");
                         }
                     }
                 }
                 Finished => {
-                    return Err(
-                        "Invalid FEN: Extra characters provided at the end of the string".into(),
-                    );
+                    panic!("Invalid FEN: Extra characters provided at the end of the string");
                 }
             }
         }
@@ -369,11 +349,11 @@ impl TryFrom<&str> for Board {
             board.update_pin_lines(color);
         }
 
-        Ok(board)
+        board
     }
 }
 
-impl PartialEq<str> for Board {
+impl PartialEq<str> for Board<'_> {
     fn eq(&self, other: &str) -> bool {
         String::from(self) == String::from(other)
     }

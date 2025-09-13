@@ -1,6 +1,6 @@
 use super::*;
 
-impl Board {
+impl Board<'_> {
     pub fn undo_move(&mut self, r#move: Move) {
         let start_square = r#move.get_start();
         let end_square = r#move.get_end();
@@ -74,7 +74,8 @@ mod tests {
         #[test]
         fn resets() {
             let fen = "rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let r#move = Move::new(square!(E5), square!(D6), MoveFlag::EnPassant);
 
             board.make_move(r#move);
@@ -91,7 +92,8 @@ mod tests {
         #[test]
         fn kingside() {
             let fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let white_move = Move::new(square!(E1), square!(G1), MoveFlag::Castle);
             let black_move = Move::new(square!(E8), square!(G8), MoveFlag::Castle);
 
@@ -107,7 +109,8 @@ mod tests {
         #[test]
         fn queenside() {
             let fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let white_move = Move::new(square!(E1), square!(C1), MoveFlag::Castle);
             let black_move = Move::new(square!(E8), square!(C8), MoveFlag::Castle);
 
@@ -123,7 +126,8 @@ mod tests {
         #[test]
         fn reset_castling_rights_when_moving_rooks() {
             let fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let h1_move = Move::new(square!(H1), square!(G1), MoveFlag::None);
             let h8_move = Move::new(square!(H8), square!(G8), MoveFlag::None);
             let a1_move = Move::new(square!(A1), square!(B1), MoveFlag::None);
@@ -145,7 +149,8 @@ mod tests {
         #[test]
         fn reset_castling_rights_when_moving_king() {
             let fen = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let white_move = Move::new(square!(E1), square!(D1), MoveFlag::None);
             let black_move = Move::new(square!(E8), square!(D8), MoveFlag::None);
 
@@ -161,7 +166,8 @@ mod tests {
         #[test]
         fn reset_castling_rights_after_rooks_captured() {
             let fen = "r3k2r/8/8/3BB3/3bb3/8/8/R3K2R w KQkq - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let h8_capture = Move::new(square!(E5), square!(H8), MoveFlag::None);
             let h1_capture = Move::new(square!(E4), square!(H1), MoveFlag::None);
             let a8_capture = Move::new(square!(D5), square!(A8), MoveFlag::None);
@@ -187,7 +193,8 @@ mod tests {
         #[test]
         fn queen() {
             let fen = "4k3/P7/8/8/8/8/8/4K3 w - - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let r#move = Move::new(square!(A7), square!(A8), MoveFlag::PromoteQueen);
 
             board.make_move(r#move);
@@ -200,7 +207,8 @@ mod tests {
         #[test]
         fn rook() {
             let fen = "4k3/P7/8/8/8/8/8/4K3 w - - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let r#move = Move::new(square!(A7), square!(A8), MoveFlag::PromoteRook);
 
             board.make_move(r#move);
@@ -213,7 +221,8 @@ mod tests {
         #[test]
         fn bishop() {
             let fen = "4k3/P7/8/8/8/8/8/4K3 w - - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let r#move = Move::new(square!(A7), square!(A8), MoveFlag::PromoteBishop);
 
             board.make_move(r#move);
@@ -226,7 +235,8 @@ mod tests {
         #[test]
         fn knight() {
             let fen = "4k3/P7/8/8/8/8/8/4K3 w - - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let r#move = Move::new(square!(A7), square!(A8), MoveFlag::PromoteKnight);
 
             board.make_move(r#move);
@@ -239,7 +249,8 @@ mod tests {
         #[test]
         fn queen_with_capture() {
             let fen = "1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1";
-            let mut board = Board::try_from(fen).unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(fen, &computed);
             let r#move = Move::new(square!(A7), square!(B8), MoveFlag::PromoteQueen);
 
             board.make_move(r#move);

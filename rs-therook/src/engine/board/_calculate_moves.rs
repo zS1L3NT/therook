@@ -1,6 +1,6 @@
 use super::*;
 
-impl Board {
+impl Board<'_> {
     pub fn calculate_moves(&self) -> Vec<Move> {
         let mut moves: Vec<Move> = vec![];
 
@@ -204,7 +204,8 @@ mod tests {
 
         #[test]
         fn double_check() {
-            let mut board = Board::try_from("4k3/8/8/8/1b6/4r3/8/4K3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("4k3/8/8/8/1b6/4r3/8/4K3 w - - 0 1", &computed);
             board.check_state[PieceColor::White] = CheckState::Double;
 
             assert_eq!(
@@ -219,7 +220,8 @@ mod tests {
 
         #[test]
         fn double_check_forced() {
-            let mut board = Board::try_from("4k3/8/1b6/4r3/8/4K3/r7/4n3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("4k3/8/1b6/4r3/8/4K3/r7/4n3 w - - 0 1", &computed);
             board.check_state[PieceColor::White] = CheckState::Double;
 
             assert_eq!(
@@ -234,7 +236,8 @@ mod tests {
 
         #[test]
         fn allowed() {
-            let board = Board::try_from("4k3/8/8/3pP3/4K3/8/8/8 w - d6 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("4k3/8/8/3pP3/4K3/8/8/8 w - d6 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -245,7 +248,8 @@ mod tests {
 
         #[test]
         fn disallowed_when_orthogonal_pinned() {
-            let board = Board::try_from("4k3/8/8/2rpPK2/8/8/8/8 w - d6 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("4k3/8/8/2rpPK2/8/8/8/8 w - d6 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -258,7 +262,8 @@ mod tests {
 
         #[test]
         fn disallowed_when_diagonal_pinned() {
-            let board = Board::try_from("4k3/8/2b5/3pP3/4K3/8/8/8 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("4k3/8/2b5/3pP3/4K3/8/8/8 w - - 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -271,7 +276,8 @@ mod tests {
 
         #[test]
         fn disallowed_when_both_pinned() {
-            let board = Board::try_from("8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("8/6bb/8/8/R1pP2k1/4P3/P7/K7 b - d3 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -288,7 +294,8 @@ mod tests {
 
         #[test]
         fn allowed() {
-            let board = Board::try_from("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -302,7 +309,8 @@ mod tests {
 
         #[test]
         fn allowed_when_file_b_attacked() {
-            let board = Board::try_from("4k3/8/8/8/4b3/8/8/R3K2R w KQ - 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("4k3/8/8/8/4b3/8/8/R3K2R w KQ - 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -316,7 +324,8 @@ mod tests {
 
         #[test]
         fn disallowed_when_king_checked() {
-            let mut board = Board::try_from("4k3/8/8/8/8/2b5/8/R3K2R w KQ - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("4k3/8/8/8/8/2b5/8/R3K2R w KQ - 0 1", &computed);
             board.check_state[PieceColor::White] = CheckState::Single(u8::from(square!(C3)));
 
             let moves = board.calculate_moves();
@@ -332,7 +341,8 @@ mod tests {
 
         #[test]
         fn disallowed_when_target_square_checked() {
-            let board = Board::try_from("4k3/8/8/8/8/4b3/8/R3K2R w KQ - 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("4k3/8/8/8/8/4b3/8/R3K2R w KQ - 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -343,7 +353,7 @@ mod tests {
                 0
             );
 
-            let board = Board::try_from("4k3/8/8/8/8/8/4b3/R3K2R w KQ - 0 1").unwrap();
+            let board = Board::from_fen("4k3/8/8/8/8/8/4b3/R3K2R w KQ - 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -361,7 +371,8 @@ mod tests {
 
         #[test]
         fn white() {
-            let board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(
@@ -375,7 +386,8 @@ mod tests {
 
         #[test]
         fn black() {
-            let board = Board::try_from("4k3/8/8/8/8/8/p7/4K3 b - - 0 1").unwrap();
+            let computed = Computed::new();
+            let board = Board::from_fen("4k3/8/8/8/8/8/p7/4K3 b - - 0 1", &computed);
             let moves = board.calculate_moves();
 
             assert_eq!(

@@ -1,6 +1,6 @@
 use super::*;
 
-impl std::fmt::Debug for Board {
+impl std::fmt::Debug for Board<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut lines = String::new();
 

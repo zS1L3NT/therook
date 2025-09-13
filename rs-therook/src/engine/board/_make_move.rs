@@ -1,6 +1,6 @@
 use super::*;
 
-impl Board {
+impl Board<'_> {
     pub fn make_move(&mut self, r#move: Move) {
         let start_square = r#move.get_start();
         let end_square = r#move.get_end();
@@ -139,9 +139,11 @@ mod tests {
 
         #[test]
         fn captured_pawn_disappears() {
-            let mut board =
-                Board::try_from("rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 1")
-                    .unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(
+                "rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 1",
+                &computed,
+            );
 
             board.make_move(Move::new(square!(E5), square!(D6), MoveFlag::EnPassant));
             assert_eq!(
@@ -152,7 +154,8 @@ mod tests {
 
         #[test]
         fn pawn_dash_sets_enpassant_square() {
-            let mut board = Board::initial();
+            let computed = Computed::new();
+            let mut board = Board::initial(&computed);
 
             board.make_move(Move::new(square!(E2), square!(E4), MoveFlag::PawnDash));
             assert_eq!(
@@ -169,7 +172,8 @@ mod tests {
 
         #[test]
         fn move_after_enpassant_resets_enpassant_square() {
-            let mut board = Board::initial();
+            let computed = Computed::new();
+            let mut board = Board::initial(&computed);
 
             board.make_move(Move::new(square!(E2), square!(E4), MoveFlag::PawnDash));
             assert_eq!(
@@ -190,8 +194,11 @@ mod tests {
 
         #[test]
         fn kingside() {
-            let mut board =
-                Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(
+                "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+                &computed,
+            );
 
             board.make_move(Move::new(square!(E1), square!(G1), MoveFlag::Castle));
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R4RK1 b kq - 1 1");
@@ -202,8 +209,11 @@ mod tests {
 
         #[test]
         fn queenside() {
-            let mut board =
-                Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(
+                "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+                &computed,
+            );
 
             board.make_move(Move::new(square!(E1), square!(C1), MoveFlag::Castle));
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/2KR3R b kq - 1 1");
@@ -214,8 +224,11 @@ mod tests {
 
         #[test]
         fn moving_rook_loses_rights() {
-            let mut board =
-                Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(
+                "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+                &computed,
+            );
 
             board.make_move(Move::new(square!(H1), square!(G1), MoveFlag::None));
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K1R1 b Qkq - 1 1");
@@ -235,8 +248,11 @@ mod tests {
 
         #[test]
         fn moving_king_loses_rights() {
-            let mut board =
-                Board::try_from("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen(
+                "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+                &computed,
+            );
 
             board.make_move(Move::new(square!(E1), square!(D1), MoveFlag::None));
             assert_eq!(&board, "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R2K3R b kq - 1 1");
@@ -247,7 +263,9 @@ mod tests {
 
         #[test]
         fn capturing_rook_revokes_rights() {
-            let mut board = Board::try_from("r3k2r/8/8/3BB3/3bb3/8/8/R3K2R w KQkq - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board =
+                Board::from_fen("r3k2r/8/8/3BB3/3bb3/8/8/R3K2R w KQkq - 0 1", &computed);
 
             board.make_move(Move::new(square!(E5), square!(H8), MoveFlag::None));
             assert_eq!(&board, "r3k2B/8/8/3B4/3bb3/8/8/R3K2R b KQq - 0 1");
@@ -268,7 +286,8 @@ mod tests {
 
         #[test]
         fn queen() {
-            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1", &computed);
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteQueen));
             assert_eq!(&board, "Q3k3/8/8/8/8/8/8/4K3 b - - 0 1");
@@ -276,7 +295,8 @@ mod tests {
 
         #[test]
         fn rook() {
-            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1", &computed);
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteRook));
             assert_eq!(&board, "R3k3/8/8/8/8/8/8/4K3 b - - 0 1");
@@ -284,7 +304,8 @@ mod tests {
 
         #[test]
         fn bishop() {
-            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1", &computed);
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteBishop));
             assert_eq!(&board, "B3k3/8/8/8/8/8/8/4K3 b - - 0 1");
@@ -292,7 +313,8 @@ mod tests {
 
         #[test]
         fn knight() {
-            let mut board = Board::try_from("4k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("4k3/P7/8/8/8/8/8/4K3 w - - 0 1", &computed);
 
             board.make_move(Move::new(square!(A7), square!(A8), MoveFlag::PromoteKnight));
             assert_eq!(&board, "N3k3/8/8/8/8/8/8/4K3 b - - 0 1");
@@ -300,7 +322,8 @@ mod tests {
 
         #[test]
         fn queen_with_capture() {
-            let mut board = Board::try_from("1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1").unwrap();
+            let computed = Computed::new();
+            let mut board = Board::from_fen("1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1", &computed);
 
             board.make_move(Move::new(square!(A7), square!(B8), MoveFlag::PromoteQueen));
             assert_eq!(&board, "1Q2k3/8/8/8/8/8/8/4K3 b - - 0 1");

@@ -5,7 +5,8 @@ use engine::*;
 pub use therook::*;
 
 fn main() {
-    let board = Board::initial();
+    let computed = Computed::new();
+    let board = Board::initial(&computed);
     println!("{board:?}");
 
     let moves = board.calculate_moves();

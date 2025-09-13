@@ -1,6 +1,6 @@
 use super::*;
 
-impl Board {
+impl Board<'_> {
     pub fn update_rays(&mut self, color: PieceColor) {
         let mut rays = Bitboard::new();
 
