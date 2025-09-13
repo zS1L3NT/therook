@@ -1,7 +1,7 @@
 use PieceColor::*;
 
-const WHITE: u8 = 1;
-const BLACK: u8 = 0;
+const WHITE: u8 = 0;
+const BLACK: u8 = 1;
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq)]
