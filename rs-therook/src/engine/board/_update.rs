@@ -106,7 +106,8 @@ impl Board {
             *pin_lines |= self
                 .computed
                 .betweens
-                .get(u64.trailing_zeros() as u8, king_square);
+                .get(u64.trailing_zeros() as u8, king_square)
+                | u64;
             *pinner &= u64 - 1;
         }
     }
