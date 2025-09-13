@@ -81,10 +81,12 @@ impl Board {
                 }
 
                 if piece_type == PieceType::Rook {
-                    match start_square & 7 {
-                        0 => state.castling[color | PieceType::Queen] = false,
-                        7 => state.castling[color | PieceType::King] = false,
-                        _ => unreachable!(),
+                    if start_square & 7 == 0 {
+                        state.castling[color | PieceType::Queen] = false;
+                    }
+
+                    if start_square & 7 == 7 {
+                        state.castling[color | PieceType::King] = false;
                     }
                 }
             }
@@ -92,10 +94,12 @@ impl Board {
             // Check if opponent can still castle
             if state.castling[enemy | PieceType::King] || state.castling[enemy | PieceType::Queen] {
                 if captured_type == Some(PieceType::Rook) {
-                    match end_square & 7 {
-                        0 => state.castling[enemy | PieceType::Queen] = false,
-                        7 => state.castling[enemy | PieceType::King] = false,
-                        _ => unreachable!(),
+                    if end_square & 7 == 0 {
+                        state.castling[enemy | PieceType::Queen] = false;
+                    }
+
+                    if end_square & 7 == 7 {
+                        state.castling[enemy | PieceType::King] = false;
                     }
                 }
             }
