@@ -42,7 +42,10 @@ impl Board {
             PieceType::Pawn,
         ] {
             for square in self.pieces[color | r#type] {
-                let _attacks = self.computed.attacks.get(color, r#type, square, occupancy);
+                let _attacks =
+                    self.computed
+                        .attacks
+                        .get(color, r#type, square, occupancy ^ enemy_king);
 
                 attacks |= _attacks;
 
