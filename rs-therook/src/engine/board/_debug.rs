@@ -4,7 +4,7 @@ impl std::fmt::Debug for Board<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut lines = String::new();
 
-        lines.push_str(&format!("Board FEN: {}\n", String::from(self)));
+        lines.push_str(&format!("Board FEN: {}\n", self.to_fen()));
         lines.push_str(&"  ╔═══╦═══╦═══╦═══╦═══╦═══╦═══╦═══╗\n");
         for rank in (0..8).rev() {
             lines.push_str(&format!(

@@ -22,7 +22,7 @@ impl Board<'_> {
 
     #[allow(dead_code)]
     fn perft_compare_stockfish(&self, stockfish: &mut Stockfish, depth: u8) {
-        let fen = String::from(&*self);
+        let fen = self.to_fen();
 
         stockfish.write(format!("position fen {fen}"));
         stockfish.write(format!("go perft {depth}"));

@@ -14,106 +14,6 @@ pub enum FenSection {
     Finished,
 }
 
-impl From<&Board<'_>> for String {
-    fn from(board: &Board) -> Self {
-        let state = board.get_state();
-
-        let mut fen = String::new();
-        let mut stack = 0;
-
-        for rank in (0..8u8).rev() {
-            for file in 0..8u8 {
-                let index = (rank * 8) + file;
-
-                if let Some(piece) = board.squares[index as usize] {
-                    if stack > 0 {
-                        fen.push_str(&format!("{stack}"));
-                        stack = 0;
-                    }
-
-                    match piece {
-                        WHITE_KING => fen.push('K'),
-                        WHITE_QUEEN => fen.push('Q'),
-                        WHITE_ROOK => fen.push('R'),
-                        WHITE_BISHOP => fen.push('B'),
-                        WHITE_KNIGHT => fen.push('N'),
-                        WHITE_PAWN => fen.push('P'),
-                        BLACK_KING => fen.push('k'),
-                        BLACK_QUEEN => fen.push('q'),
-                        BLACK_ROOK => fen.push('r'),
-                        BLACK_BISHOP => fen.push('b'),
-                        BLACK_KNIGHT => fen.push('n'),
-                        BLACK_PAWN => fen.push('p'),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    stack += 1;
-                }
-            }
-
-            if stack > 0 {
-                fen.push_str(&format!("{stack}"));
-                stack = 0;
-            }
-
-            fen.push('/');
-        }
-
-        fen.pop();
-        fen.push(' ');
-
-        match board.turn {
-            PieceColor::White => fen.push('w'),
-            PieceColor::Black => fen.push('b'),
-        }
-
-        fen.push(' ');
-
-        if state.castling[WHITE_KING] {
-            fen.push('K');
-        }
-
-        if state.castling[WHITE_QUEEN] {
-            fen.push('Q');
-        }
-
-        if state.castling[BLACK_KING] {
-            fen.push('k');
-        }
-
-        if state.castling[BLACK_QUEEN] {
-            fen.push('q');
-        }
-
-        if state.castling == [false; 4] {
-            fen.push('-');
-        }
-
-        fen.push(' ');
-
-        if state.enpassant.is_some() {
-            let square = state.enpassant.into_iter().find_or_first(|_| true).unwrap();
-            fen.push_str(&format!(
-                "{}{}",
-                ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'][square as usize & 7],
-                ['1', '2', '3', '4', '5', '6', '7', '8'][square as usize >> 3]
-            ))
-        } else {
-            fen.push('-');
-        }
-
-        fen.push(' ');
-
-        fen.push_str(&format!("{}", state.halfmove));
-
-        fen.push(' ');
-
-        fen.push_str(&format!("{}", state.fullmove));
-
-        fen
-    }
-}
-
 impl<'a> Board<'a> {
     pub fn from_fen(fen: &str, computed: &'a Computed) -> Board<'a> {
         let mut board = Board::new(computed);
@@ -350,10 +250,108 @@ impl<'a> Board<'a> {
 
         board
     }
+
+    pub fn to_fen(&self) -> String {
+        let state = self.get_state();
+
+        let mut fen = String::new();
+        let mut stack = 0;
+
+        for rank in (0..8u8).rev() {
+            for file in 0..8u8 {
+                let index = (rank * 8) + file;
+
+                if let Some(piece) = self.squares[index as usize] {
+                    if stack > 0 {
+                        fen.push_str(&format!("{stack}"));
+                        stack = 0;
+                    }
+
+                    match piece {
+                        WHITE_KING => fen.push('K'),
+                        WHITE_QUEEN => fen.push('Q'),
+                        WHITE_ROOK => fen.push('R'),
+                        WHITE_BISHOP => fen.push('B'),
+                        WHITE_KNIGHT => fen.push('N'),
+                        WHITE_PAWN => fen.push('P'),
+                        BLACK_KING => fen.push('k'),
+                        BLACK_QUEEN => fen.push('q'),
+                        BLACK_ROOK => fen.push('r'),
+                        BLACK_BISHOP => fen.push('b'),
+                        BLACK_KNIGHT => fen.push('n'),
+                        BLACK_PAWN => fen.push('p'),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    stack += 1;
+                }
+            }
+
+            if stack > 0 {
+                fen.push_str(&format!("{stack}"));
+                stack = 0;
+            }
+
+            fen.push('/');
+        }
+
+        fen.pop();
+        fen.push(' ');
+
+        match self.turn {
+            PieceColor::White => fen.push('w'),
+            PieceColor::Black => fen.push('b'),
+        }
+
+        fen.push(' ');
+
+        if state.castling[WHITE_KING] {
+            fen.push('K');
+        }
+
+        if state.castling[WHITE_QUEEN] {
+            fen.push('Q');
+        }
+
+        if state.castling[BLACK_KING] {
+            fen.push('k');
+        }
+
+        if state.castling[BLACK_QUEEN] {
+            fen.push('q');
+        }
+
+        if state.castling == [false; 4] {
+            fen.push('-');
+        }
+
+        fen.push(' ');
+
+        if state.enpassant.is_some() {
+            let square = state.enpassant.into_iter().find_or_first(|_| true).unwrap();
+            fen.push_str(&format!(
+                "{}{}",
+                ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'][square as usize & 7],
+                ['1', '2', '3', '4', '5', '6', '7', '8'][square as usize >> 3]
+            ))
+        } else {
+            fen.push('-');
+        }
+
+        fen.push(' ');
+
+        fen.push_str(&format!("{}", state.halfmove));
+
+        fen.push(' ');
+
+        fen.push_str(&format!("{}", state.fullmove));
+
+        fen
+    }
 }
 
 impl PartialEq<str> for Board<'_> {
     fn eq(&self, other: &str) -> bool {
-        String::from(self) == String::from(other)
+        self.to_fen() == other
     }
 }
