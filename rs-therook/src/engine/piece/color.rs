@@ -11,10 +11,19 @@ pub enum PieceColor {
 }
 
 impl PieceColor {
+    pub const ALL: [PieceColor; 2] = [White, Black];
+
     pub fn opposite(&self) -> Self {
         match self {
             White => Black,
             Black => White,
+        }
+    }
+
+    pub fn get_home_row(&self) -> u8 {
+        match self {
+            White => 0,
+            Black => 7,
         }
     }
 }

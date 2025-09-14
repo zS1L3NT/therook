@@ -25,7 +25,7 @@ pub struct Board<'a> {
     pub colors: [Bitboard; 2],
     pub rays: [Bitboard; 2],
     pub attacks: [Bitboard; 2],
-    pub pin_lines: [Bitboard; 2],
+    pub pin_lines: [Vec<Bitboard>; 2],
     pub check_state: [CheckState; 2],
 
     // For undoing and restoration of state
@@ -44,7 +44,7 @@ impl<'a> Board<'a> {
             colors: [Bitboard::new(); 2],
             rays: [Bitboard::new(); 2],
             attacks: [Bitboard::new(); 2],
-            pin_lines: [Bitboard::new(); 2],
+            pin_lines: [vec![], vec![]],
             check_state: [CheckState::None; 2],
 
             states: vec![],

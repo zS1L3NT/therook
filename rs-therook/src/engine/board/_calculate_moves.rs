@@ -78,23 +78,57 @@ impl Board<'_> {
                 if (attacks & state.enpassant).is_some() {
                     let enpassant_square = u8::try_from(state.enpassant).unwrap();
 
-                    let diagonal_pinned = (self.pin_lines[color] & state.enpassant).is_some();
+                    let diagonal_pinned = {
+                        let mut pinned = false;
+                        for pin_line in &self.pin_lines[color] {
+                            if (*pin_line & state.enpassant).is_some() {
+                                pinned = true;
+                            }
+                        }
+
+                        pinned
+                    };
+
                     let orthogonal_pinned = {
-                        // Annoyingly long algorithm to calculate orthogonal pins
                         let capturing_pawn = square;
                         let captured_pawn = (square & 56) + (enpassant_square & 7);
 
-                        let enemy_orthogonals = self.pieces[enemy | PieceType::Rook]
-                            | self.pieces[enemy | PieceType::Queen];
-
-                        let rook_attacks_from_king_without_pawns = self.computed.attacks.get(
+                        let possible_pinners_without_pawns = self.computed.attacks.get(
                             color,
                             PieceType::Rook,
                             king_square,
                             occupancy ^ capturing_pawn ^ captured_pawn,
                         );
 
-                        (rook_attacks_from_king_without_pawns & enemy_orthogonals).is_some()
+                        let enemy_sliders = self.pieces[enemy | PieceType::Rook]
+                            | self.pieces[enemy | PieceType::Queen];
+
+                        let pinner = possible_pinners_without_pawns & enemy_sliders;
+
+                        if pinner.is_some() {
+                            let pinner_square = u8::try_from(pinner).unwrap();
+
+                            if pinner_square >> 3 == king_square >> 3 {
+                                // Same rank pin
+                                // Since enpassant requires pawns to be same rank, this is definitely a pin
+                                true
+                            } else {
+                                // Same file pin
+                                // This is only a pin if the capturing pawn is pinned
+                                // If the captured pawn is pinned, capturing is still allowed because the capturing pawn retains the pin
+                                let possible_pinners_without_capturing_pawn =
+                                    self.computed.attacks.get(
+                                        color,
+                                        PieceType::Rook,
+                                        king_square,
+                                        occupancy ^ capturing_pawn,
+                                    );
+
+                                (possible_pinners_without_capturing_pawn & pinner).is_some()
+                            }
+                        } else {
+                            false
+                        }
                     };
 
                     can_enpassant = !diagonal_pinned && !orthogonal_pinned;
@@ -153,8 +187,10 @@ impl Board<'_> {
             }
 
             // If piece is pinned, only allow moves that keep piece within pin line
-            if (self.pin_lines[color] & Bitboard::from(square)).is_some() {
-                attacks &= self.pin_lines[color];
+            for pin_line in &self.pin_lines[color] {
+                if (*pin_line & Bitboard::from(square)).is_some() {
+                    attacks &= *pin_line;
+                }
             }
 
             for _square in attacks {

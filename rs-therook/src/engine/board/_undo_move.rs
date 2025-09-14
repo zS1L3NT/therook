@@ -55,7 +55,7 @@ impl Board<'_> {
             self.update_rays(color);
         }
 
-        for color in [PieceColor::White, PieceColor::Black] {
+        for color in PieceColor::ALL {
             self.update_attacks(color);
             self.update_pin_lines(color);
         }

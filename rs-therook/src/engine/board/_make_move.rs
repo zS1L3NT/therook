@@ -80,7 +80,7 @@ impl Board<'_> {
                     state.castling[color | PieceType::Queen] = false;
                 }
 
-                if piece_type == PieceType::Rook {
+                if piece_type == PieceType::Rook && start_square >> 3 == color.get_home_row() {
                     if start_square & 7 == 0 {
                         state.castling[color | PieceType::Queen] = false;
                     }
@@ -93,7 +93,8 @@ impl Board<'_> {
 
             // Check if opponent can still castle
             if state.castling[enemy | PieceType::King] || state.castling[enemy | PieceType::Queen] {
-                if captured_type == Some(PieceType::Rook) {
+                if captured_type == Some(PieceType::Rook) && end_square >> 3 == enemy.get_home_row()
+                {
                     if end_square & 7 == 0 {
                         state.castling[enemy | PieceType::Queen] = false;
                     }
@@ -119,7 +120,7 @@ impl Board<'_> {
             self.update_rays(color);
         }
 
-        for color in [PieceColor::White, PieceColor::Black] {
+        for color in PieceColor::ALL {
             self.update_attacks(color);
             self.update_pin_lines(color);
         }

@@ -19,6 +19,9 @@ pub enum PieceType {
 }
 
 impl PieceType {
+    pub const ALL: [PieceType; 6] = [King, Queen, Rook, Bishop, Knight, Pawn];
+    pub const SLIDERS: [PieceType; 3] = [Queen, Rook, Bishop];
+
     pub fn is_orthogonal_slider(self) -> bool {
         self == Queen || self == Rook
     }

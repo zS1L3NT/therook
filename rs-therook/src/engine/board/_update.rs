@@ -4,7 +4,7 @@ impl Board<'_> {
     pub fn update_rays(&mut self, color: PieceColor) {
         let mut rays = Bitboard::new();
 
-        for r#type in [PieceType::Queen, PieceType::Rook, PieceType::Bishop] {
+        for r#type in PieceType::SLIDERS {
             for square in self.pieces[color | r#type] {
                 if r#type.is_orthogonal_slider() {
                     rays |= self.computed.rays.ranks[square as usize];
@@ -33,14 +33,7 @@ impl Board<'_> {
         let enemy_king = self.pieces[enemy | PieceType::King];
         let occupancy = self.colors[color] | self.colors[enemy];
 
-        for r#type in [
-            PieceType::King,
-            PieceType::Queen,
-            PieceType::Rook,
-            PieceType::Bishop,
-            PieceType::Knight,
-            PieceType::Pawn,
-        ] {
+        for r#type in PieceType::ALL {
             for square in self.pieces[color | r#type] {
                 let _attacks =
                     self.computed
@@ -70,7 +63,7 @@ impl Board<'_> {
 
     // https://www.chessprogramming.org/Checks_and_Pinned_Pieces_%28Bitboards%29#Absolute_Pins
     pub fn update_pin_lines(&mut self, color: PieceColor) {
-        let mut pin_lines = Bitboard::new();
+        let mut pin_lines = vec![];
 
         let enemy = color.opposite();
         let king_square = u8::try_from(self.pieces[color | PieceType::King]).unwrap();
@@ -79,19 +72,19 @@ impl Board<'_> {
         let enemies = self.colors[enemy];
         let occupancy = friendlies | enemies;
 
-        let mut pinner = self
+        let mut pinners = self
             .computed
             .xray_orthogonal_attacks(occupancy, friendlies, king_square);
-        pinner &= self.pieces[enemy | PieceType::Queen] | self.pieces[enemy | PieceType::Rook];
+        pinners &= self.pieces[enemy | PieceType::Queen] | self.pieces[enemy | PieceType::Rook];
 
-        self.clear_pinner(&mut pin_lines, &mut pinner, king_square);
+        self.clear_pinners(&mut pin_lines, &mut pinners, king_square);
 
-        let mut pinner = self
+        let mut pinners = self
             .computed
             .xray_diagonal_attacks(occupancy, friendlies, king_square);
-        pinner &= self.pieces[enemy | PieceType::Queen] | self.pieces[enemy | PieceType::Bishop];
+        pinners &= self.pieces[enemy | PieceType::Queen] | self.pieces[enemy | PieceType::Bishop];
 
-        self.clear_pinner(&mut pin_lines, &mut pinner, king_square);
+        self.clear_pinners(&mut pin_lines, &mut pinners, king_square);
 
         if pin_lines == self.pin_lines[color] {
             log::warn!("Board::update_pin_lines() called but pin lines didn't change");
@@ -100,15 +93,15 @@ impl Board<'_> {
         }
     }
 
-    fn clear_pinner(&mut self, pin_lines: &mut Bitboard, pinner: &mut Bitboard, king_square: u8) {
-        while pinner.is_some() {
-            let u64 = u64::from(*pinner);
-            *pin_lines |= self
-                .computed
-                .betweens
-                .get(u64.trailing_zeros() as u8, king_square)
-                | u64;
-            *pinner &= u64 - 1;
+    fn clear_pinners(
+        &mut self,
+        pin_lines: &mut Vec<Bitboard>,
+        pinners: &mut Bitboard,
+        king_square: u8,
+    ) {
+        for pinner in pinners {
+            pin_lines
+                .push(self.computed.betweens.get(pinner, king_square) | Bitboard::from(pinner));
         }
     }
 }

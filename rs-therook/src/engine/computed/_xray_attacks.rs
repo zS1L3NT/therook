@@ -8,22 +8,23 @@ impl Computed {
         blockers: Bitboard,
         square: u8,
     ) -> Bitboard {
-        let attacks = self
-            .attacks
-            .get(PieceColor::White, PieceType::Rook, square, occupancy);
+        let possible_attackers =
+            self.attacks
+                .get(PieceColor::White, PieceType::Rook, square, occupancy);
 
-        let blockers = blockers & attacks;
+        let pinned = blockers & possible_attackers;
 
-        if blockers.is_none() {
-            blockers
+        if pinned.is_some() {
+            let possible_attackers_without_pinned = self.attacks.get(
+                PieceColor::White,
+                PieceType::Rook,
+                square,
+                occupancy ^ pinned,
+            );
+
+            possible_attackers ^ possible_attackers_without_pinned
         } else {
-            attacks
-                ^ self.attacks.get(
-                    PieceColor::White,
-                    PieceType::Rook,
-                    square,
-                    occupancy ^ blockers,
-                )
+            Bitboard::new()
         }
     }
 
@@ -33,22 +34,23 @@ impl Computed {
         blockers: Bitboard,
         square: u8,
     ) -> Bitboard {
-        let attacks = self
-            .attacks
-            .get(PieceColor::White, PieceType::Bishop, square, occupancy);
+        let possible_attackers =
+            self.attacks
+                .get(PieceColor::White, PieceType::Bishop, square, occupancy);
 
-        let blockers = blockers & attacks;
+        let pinned = blockers & possible_attackers;
 
-        if blockers.is_none() {
-            blockers
+        if pinned.is_some() {
+            let possible_attackers_without_pinned = self.attacks.get(
+                PieceColor::White,
+                PieceType::Bishop,
+                square,
+                occupancy ^ pinned,
+            );
+
+            possible_attackers ^ possible_attackers_without_pinned
         } else {
-            attacks
-                ^ self.attacks.get(
-                    PieceColor::White,
-                    PieceType::Bishop,
-                    square,
-                    occupancy ^ blockers,
-                )
+            Bitboard::new()
         }
     }
 }
