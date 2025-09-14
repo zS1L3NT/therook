@@ -1,4 +1,5 @@
 use super::*;
+use std::io::{BufRead, BufReader, Read, Write};
 
 impl Board<'_> {
     #[allow(dead_code)]
@@ -27,13 +28,109 @@ impl Board<'_> {
         for r#move in self.calculate_moves() {
             self.make_move(r#move);
             let perft = self.perft_iter(1 + 1, depth);
-            actual += perft;
             self.undo_move(r#move);
 
             println!("{move:?}: {perft}");
+            actual += perft;
         }
 
         actual
+    }
+
+    #[allow(dead_code)]
+    fn stockfish_perft_difference(&mut self, depth: u8) {
+        let mut process = std::process::Command::new("../stockfish/stockfish")
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .unwrap();
+
+        let mut stdin = process.stdin.take().expect("Failed to open stdin");
+        let stdout = process.stdout.take().expect("Failed to open stdin");
+        let mut reader = BufReader::new(stdout);
+
+        writeln!(stdin, "uci").expect("Failed to write to stdin");
+
+        for line in reader.by_ref().lines() {
+            if line.unwrap() == "uciok" {
+                break;
+            }
+        }
+
+        writeln!(stdin, "position fen {}", String::from(&*self)).expect("Failed to write to stdin");
+        writeln!(stdin, "go perft {}", depth).expect("Failed to write to stdin");
+
+        let regex = regex::Regex::new(r"(\w\d\w\d\w?): (\d+)").unwrap();
+        let mut expected_perfts = vec![];
+        let mut actual_perfts = vec![];
+
+        for line in reader.by_ref().lines() {
+            let line = line.unwrap();
+
+            if let Some(captures) = regex.captures(&line) {
+                expected_perfts.push((captures[1].to_owned(), captures[2].parse::<u64>().unwrap()));
+                continue;
+            }
+
+            if line.contains("Nodes searched: ") {
+                break;
+            }
+        }
+
+        process.kill().expect("Failed to kill stockfish");
+
+        for r#move in self.calculate_moves() {
+            self.make_move(r#move);
+            let perft = self.perft_iter(1 + 1, depth);
+            self.undo_move(r#move);
+
+            actual_perfts.push((format!("{move:?}"), perft));
+        }
+
+        expected_perfts.sort_by(|a, b| a.0.cmp(&b.0));
+        actual_perfts.sort_by(|a, b| a.0.cmp(&b.0));
+
+        let mut has_errors = false;
+        let mut e_i = 0;
+        let mut a_i = 0;
+        while e_i < expected_perfts.len() && a_i < actual_perfts.len() {
+            let (e_move, e_perft) = &expected_perfts[e_i];
+            let (a_move, a_perft) = &actual_perfts[a_i];
+
+            if e_move == a_move {
+                if e_perft != a_perft {
+                    println!(
+                        "move: {e_move: <5}, expected: {e_perft}, actual: {a_perft}, difference: {}{}",
+                        if a_perft > e_perft { '+' } else { '-' },
+                        a_perft.abs_diff(*e_perft)
+                    );
+                    has_errors = true;
+                }
+                e_i += 1;
+                a_i += 1;
+            } else {
+                if actual_perfts.iter().find(|p| p.0 == *e_move).is_none() {
+                    println!("move: {e_move: <5}, missing move detected");
+                    has_errors = true;
+                    e_i += 1;
+                }
+
+                if expected_perfts.iter().find(|p| p.0 == *a_move).is_none() {
+                    println!("move: {a_move: <5}, invalid move detected");
+                    has_errors = true;
+                    a_i += 1;
+                }
+
+                if !has_errors {
+                    unreachable!();
+                }
+            }
+        }
+
+        assert!(
+            !has_errors,
+            "Errors found with perft comparisons to stockfish"
+        );
     }
 }
 
@@ -85,7 +182,7 @@ mod tests {
         perft_expect(&mut board.clone(), 3, 2_812);
         perft_expect(&mut board.clone(), 4, 43_238);
         perft_expect(&mut board.clone(), 5, 674_624);
-        // perft_expect(&mut board.clone(), 6, 11_030_083);
+        perft_expect(&mut board.clone(), 6, 11_030_083);
         // perft_expect(&mut board.clone(), 7, 178_633_661);
         // perft_expect(&mut board.clone(), 8, 3_009_794_393);
     }
