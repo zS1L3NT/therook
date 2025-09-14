@@ -344,7 +344,6 @@ impl<'a> Board<'a> {
         board.states.push(state);
 
         for color in PieceColor::ALL {
-            board.update_rays(color);
             board.update_attacks(color);
             board.update_pin_lines(color);
         }

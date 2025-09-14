@@ -1,30 +1,6 @@
 use super::*;
 
 impl Board<'_> {
-    pub fn update_rays(&mut self, color: PieceColor) {
-        let mut rays = Bitboard::new();
-
-        for r#type in PieceType::SLIDERS {
-            for square in self.pieces[color | r#type] {
-                if r#type.is_orthogonal_slider() {
-                    rays |= self.computed.rays.ranks[square as usize];
-                    rays |= self.computed.rays.files[square as usize];
-                }
-
-                if r#type.is_diagonal_slider() {
-                    rays |= self.computed.rays.diagonals[square as usize];
-                    rays |= self.computed.rays.antidiags[square as usize];
-                }
-            }
-        }
-
-        if rays == self.rays[color] {
-            log::warn!("Board::update_rays() called but rays didn't change");
-        } else {
-            self.rays[color] = rays;
-        }
-    }
-
     pub fn update_attacks(&mut self, color: PieceColor) {
         let mut attacks = Bitboard::new();
         let mut check_state = CheckState::None;

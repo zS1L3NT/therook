@@ -23,7 +23,6 @@ pub struct Board<'a> {
     // Calculated on the fly
     pub pieces: [Bitboard; 12],
     pub colors: [Bitboard; 2],
-    pub rays: [Bitboard; 2],
     pub attacks: [Bitboard; 2],
     pub pin_lines: [Vec<Bitboard>; 2],
     pub check_state: [CheckState; 2],
@@ -42,7 +41,6 @@ impl<'a> Board<'a> {
 
             pieces: [Bitboard::new(); 12],
             colors: [Bitboard::new(); 2],
-            rays: [Bitboard::new(); 2],
             attacks: [Bitboard::new(); 2],
             pin_lines: [vec![], vec![]],
             check_state: [CheckState::None; 2],

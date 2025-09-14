@@ -50,11 +50,6 @@ impl Board<'_> {
             );
         }
 
-        // Update the extra state of the board
-        if piece.is_slider() {
-            self.update_rays(color);
-        }
-
         for color in PieceColor::ALL {
             self.update_attacks(color);
             self.update_pin_lines(color);
