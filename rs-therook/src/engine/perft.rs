@@ -114,6 +114,14 @@ impl Board<'_> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn initial_position_counts_without_external_engine() {
+        let computed = Computed::new();
+        let mut board = Board::initial(&computed);
+
+        assert_eq!(board.perft_iter(1, 4), 197_281);
+    }
+
     // https://www.chessprogramming.org/Perft_Results#Initial_Position
     #[test]
     fn perft_position_1() {
