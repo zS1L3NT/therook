@@ -19,7 +19,7 @@ impl Board<'_> {
                 attacks |= _attacks;
 
                 if (_attacks & enemy_king).is_some() {
-                    check_state = match self.check_state[enemy] {
+                    check_state = match check_state {
                         CheckState::None => CheckState::Single(square),
                         CheckState::Single(_) => CheckState::Double,
                         CheckState::Double => unreachable!(),
@@ -30,11 +30,7 @@ impl Board<'_> {
 
         self.check_state[enemy] = check_state;
 
-        if attacks == self.attacks[color] {
-            log::warn!("Board::update_attacks() called but attacks didn't change");
-        } else {
-            self.attacks[color] = attacks;
-        }
+        self.attacks[color] = attacks;
     }
 
     // https://www.chessprogramming.org/Checks_and_Pinned_Pieces_%28Bitboards%29#Absolute_Pins
@@ -62,11 +58,7 @@ impl Board<'_> {
 
         self.clear_pinners(&mut pin_lines, &mut pinners, king_square);
 
-        if pin_lines == self.pin_lines[color] {
-            log::warn!("Board::update_pin_lines() called but pin lines didn't change");
-        } else {
-            self.pin_lines[color] = pin_lines;
-        }
+        self.pin_lines[color] = pin_lines;
     }
 
     fn clear_pinners(

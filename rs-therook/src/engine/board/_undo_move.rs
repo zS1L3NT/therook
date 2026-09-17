@@ -50,10 +50,9 @@ impl Board<'_> {
             );
         }
 
-        for color in PieceColor::ALL {
-            self.update_attacks(color);
-            self.update_pin_lines(color);
-        }
+        self.attacks = state.previous_attacks;
+        self.pin_lines = state.previous_pin_lines;
+        self.check_state = state.previous_check_state;
 
         self.turn = color;
     }
@@ -62,6 +61,27 @@ impl Board<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn restores_cached_attacks_pins_and_check_state() {
+        let computed = Computed::new();
+        let mut board = Board::from_fen("4k3/8/8/8/8/2b5/3R4/4K3 w - - 0 1", &computed);
+        let attacks = board.attacks;
+        let pin_lines = board.pin_lines.clone();
+        let check_state = board.check_state;
+        let r#move = board
+            .calculate_moves()
+            .into_iter()
+            .find(|r#move| r#move.get_start() == square!(E1) && r#move.get_end() == square!(F1))
+            .expect("king move should be legal");
+
+        board.make_move(r#move);
+        board.undo_move(r#move);
+
+        assert_eq!(board.attacks, attacks);
+        assert_eq!(board.pin_lines, pin_lines);
+        assert!(board.check_state == check_state);
+    }
 
     mod enpassant {
         use super::*;

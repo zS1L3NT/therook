@@ -17,7 +17,10 @@ impl Board<'_> {
         let color = piece.get_color();
         let enemy = color.opposite();
 
-        let mut state = self.get_state().clone();
+        let mut state = self.get_state().next();
+        state.previous_attacks = self.attacks;
+        state.previous_pin_lines = std::mem::take(&mut self.pin_lines);
+        state.previous_check_state = self.check_state;
 
         state.captured = if is_enpassant {
             Some(color.opposite() | PieceType::Pawn)
@@ -115,10 +118,11 @@ impl Board<'_> {
             state.fullmove += 1;
         }
 
-        for color in PieceColor::ALL {
-            self.update_attacks(color);
-            self.update_pin_lines(color);
-        }
+        // The next move generator only needs attacks from the side that just
+        // moved plus pins/check state for its opponent. The reverse caches are
+        // restored on undo or refreshed after the opponent moves.
+        self.update_attacks(color);
+        self.update_pin_lines(enemy);
 
         self.states.push(state);
 
