@@ -241,6 +241,64 @@ impl<'a> Board<'a> {
             }
         }
 
+        // The FEN string is trimmed, so the final token is never terminated by
+        // a space inside the loop above. Commit any pending trailing section
+        // here. Missing trailing halfmove/fullmove fields default to 0/1,
+        // which also keeps truncated test FENs working.
+        match section {
+            Finished => {}
+            FullMoveNumber(string) => {
+                if string.is_empty() {
+                    panic!("Invalid full move number: No full move number provided");
+                }
+
+                match string.parse::<u8>() {
+                    Ok(number) => {
+                        state.fullmove = number;
+                    }
+                    Err(_) => {
+                        panic!("Invalid full move number: Invalid number {string}");
+                    }
+                }
+            }
+            HalfMoveClock(string) => {
+                if string.is_empty() {
+                    panic!("Invalid half move clock: No half move clock provided");
+                }
+
+                match string.parse::<u8>() {
+                    Ok(number) => {
+                        state.halfmove = number;
+                    }
+                    Err(_) => {
+                        panic!("Invalid half move clock: Invalid number {string}");
+                    }
+                }
+            }
+            PossibleEnPassantTargets(string) => {
+                if string != "-" && !string.is_empty() {
+                    let files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+                    let ranks = ['1', '2', '3', '4', '5', '6', '7', '8'];
+
+                    let mut chars = string.chars();
+                    let file = chars.next().unwrap();
+                    let rank = chars.next().unwrap();
+
+                    if string.len() == 2 && files.contains(&file) && ranks.contains(&rank) {
+                        let rank = rank.to_digit(10).unwrap() as u8;
+                        let file = files.iter().position(|r| *r == file).unwrap() as u8;
+
+                        state.enpassant = Bitboard::from(((rank - 1) * 8) + file);
+                    } else {
+                        panic!("Invalid possible en passant targets: Unknown square {string}",);
+                    }
+                }
+            }
+            _ => {
+                panic!("Invalid FEN: Incomplete FEN string");
+            }
+        }
+
         board.states.push(state);
 
         for color in PieceColor::ALL {
