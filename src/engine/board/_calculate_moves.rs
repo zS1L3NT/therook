@@ -78,17 +78,6 @@ impl Board<'_> {
                 if (attacks & state.enpassant).is_some() {
                     let enpassant_square = u8::try_from(state.enpassant).unwrap();
 
-                    let diagonal_pinned = {
-                        let mut pinned = false;
-                        for pin_line in &self.pin_lines[color] {
-                            if (*pin_line & state.enpassant).is_some() {
-                                pinned = true;
-                            }
-                        }
-
-                        pinned
-                    };
-
                     let orthogonal_pinned = {
                         let capturing_pawn = square;
                         let captured_pawn = (square & 56) + (enpassant_square & 7);
@@ -106,32 +95,41 @@ impl Board<'_> {
                         let pinner = possible_pinners_without_pawns & enemy_sliders;
 
                         if pinner.is_some() {
-                            let pinner_square = u8::try_from(pinner).unwrap();
+                            let mut pinned = false;
+                            for pinner_square in pinner {
+                                if pinner_square >> 3 == king_square >> 3 {
+                                    // Same rank pin
+                                    // Since enpassant requires pawns to be same rank, this is definitely a pin
+                                    pinned = true;
+                                    break;
+                                } else {
+                                    // Same file pin
+                                    // This is only a pin if the capturing pawn is pinned
+                                    // If the captured pawn is pinned, capturing is still allowed because the capturing pawn retains the pin
+                                    let possible_pinners_without_capturing_pawn =
+                                        self.computed.attacks.get(
+                                            color,
+                                            PieceType::Rook,
+                                            king_square,
+                                            occupancy ^ capturing_pawn,
+                                        );
 
-                            if pinner_square >> 3 == king_square >> 3 {
-                                // Same rank pin
-                                // Since enpassant requires pawns to be same rank, this is definitely a pin
-                                true
-                            } else {
-                                // Same file pin
-                                // This is only a pin if the capturing pawn is pinned
-                                // If the captured pawn is pinned, capturing is still allowed because the capturing pawn retains the pin
-                                let possible_pinners_without_capturing_pawn =
-                                    self.computed.attacks.get(
-                                        color,
-                                        PieceType::Rook,
-                                        king_square,
-                                        occupancy ^ capturing_pawn,
-                                    );
-
-                                (possible_pinners_without_capturing_pawn & pinner).is_some()
+                                    if (possible_pinners_without_capturing_pawn
+                                        & Bitboard::from(pinner_square))
+                                        .is_some()
+                                    {
+                                        pinned = true;
+                                        break;
+                                    }
+                                }
                             }
+                            pinned
                         } else {
                             false
                         }
                     };
 
-                    can_enpassant = !diagonal_pinned && !orthogonal_pinned;
+                    can_enpassant = !orthogonal_pinned;
                 }
 
                 // Only attack when there is an enemy piece
