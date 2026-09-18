@@ -9,7 +9,7 @@ pub struct Stockfish {
 
 impl Stockfish {
     pub fn new() -> Self {
-        let mut process = Command::new("../stockfish/stockfish")
+        let mut process = Command::new("stockfish/stockfish")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
