@@ -28,8 +28,8 @@ impl Board<'_> {
         stockfish.write(format!("go perft {depth}"));
 
         let perft_regex = regex::Regex::new(r"(\w\d\w\d\w?): (\d+)").unwrap();
-        let mut expected_perfts = vec![];
-        let mut actual_perfts = vec![];
+        let mut expected_perfts: Vec<(String, u64)> = vec![];
+        let mut actual_perfts: Vec<(String, u64)> = vec![];
 
         for line in stockfish.read_until("Nodes searched:".into()) {
             if let Some(captures) = perft_regex.captures(&line) {
