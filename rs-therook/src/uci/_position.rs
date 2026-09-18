@@ -53,19 +53,19 @@ pub fn parse_position(board: &mut Board<'_>, tokens: &[&str]) -> Result<(), Stri
         let moves = match tokens {
             [_] => &[][..],
             [_, "moves", moves @ ..] => moves,
-            _ => return Err("expected `startpos` or `startpos moves ...`".into()),
+            _ => return Err("expected `startpos` or `startpos moves ...`".to_string()),
         };
         apply_uci_moves(&mut replacement, moves)?;
         *board = replacement;
         return Ok(());
     }
     if tokens.first() != Some(&"fen") || tokens.len() < 7 {
-        return Err("expected startpos or six-field fen".into());
+        return Err("expected startpos or six-field fen".to_string());
     }
     let moves_index = tokens.iter().position(|token| *token == "moves");
     let fen_end = moves_index.unwrap_or(tokens.len());
     if fen_end != 7 {
-        return Err("expected exactly six fen fields".into());
+        return Err("expected exactly six fen fields".to_string());
     }
     let fen = tokens[1..7].join(" ");
     let computed = board.computed;
@@ -85,8 +85,7 @@ pub fn parse_position(board: &mut Board<'_>, tokens: &[&str]) -> Result<(), Stri
 
 #[cfg(test)]
 mod tests {
-use super::*;
-use std::panic::{AssertUnwindSafe, catch_unwind};
+    use super::*;
 
     #[test]
     fn uci_move_round_trip_restores_position() {

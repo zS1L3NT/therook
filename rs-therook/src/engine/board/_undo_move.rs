@@ -24,7 +24,7 @@ impl Board<'_> {
                 square!(C1) => (square!(D1), square!(A1), WHITE_ROOK),
                 square!(G8) => (square!(F8), square!(H8), BLACK_ROOK),
                 square!(C8) => (square!(D8), square!(A8), BLACK_ROOK),
-                _ => unreachable!(),
+                _ => panic!("Unknown castle target square: {end_square}"),
             };
 
             self.clear_square(from_square, piece);

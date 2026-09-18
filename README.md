@@ -25,7 +25,7 @@ There is no custom arena in this repo. Use
 
 ```bash
 fastchess -engine cmd=./rs-therook/target/release/therook name=therook \
-  -engine cmd=../rs-tauri-chess/src-tauri/target/release/rs-tauri-chess name=legacy \
+  -engine cmd=../rs-tauri-chess/rs-tauri-chess/target/release/rs-tauri-chess name=legacy \
   -each tc=0.1+0.01 -rounds 50 -repeat -concurrency 2
 
 fastchess --compliance ./rs-therook/target/release/therook

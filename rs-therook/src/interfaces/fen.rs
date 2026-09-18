@@ -1,4 +1,4 @@
-use crate::engine::*;
+use super::*;
 use FenSection::*;
 use itertools::Itertools;
 
@@ -139,7 +139,7 @@ impl<'a> Board<'a> {
                                 panic!("Invalid castling rights: No castling rights provided");
                             }
 
-                            section = PossibleEnPassantTargets("".into());
+                            section = PossibleEnPassantTargets("".to_string());
 
                             continue;
                         }
@@ -164,7 +164,7 @@ impl<'a> Board<'a> {
                     }
 
                     if string == "-" {
-                        section = HalfMoveClock("".into());
+                        section = HalfMoveClock("".to_string());
 
                         continue;
                     }
@@ -182,7 +182,7 @@ impl<'a> Board<'a> {
 
                         state.enpassant = Bitboard::from(((rank - 1) * 8) + file);
 
-                        section = HalfMoveClock("".into());
+                        section = HalfMoveClock("".to_string());
                     } else {
                         panic!("Invalid possible en passant targets: Unknown square {string}",);
                     }
@@ -202,7 +202,7 @@ impl<'a> Board<'a> {
                         Ok(number) => {
                             state.halfmove = number;
 
-                            section = FullMoveNumber("".into());
+                            section = FullMoveNumber("".to_string());
 
                             continue;
                         }
@@ -280,7 +280,7 @@ impl<'a> Board<'a> {
                         BLACK_BISHOP => fen.push('b'),
                         BLACK_KNIGHT => fen.push('n'),
                         BLACK_PAWN => fen.push('p'),
-                        _ => unreachable!(),
+                        _ => panic!("Unknown piece type: {piece:?}"),
                     }
                 } else {
                     stack += 1;
