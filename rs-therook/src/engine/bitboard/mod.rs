@@ -35,11 +35,11 @@ impl TryFrom<Bitboard> for u8 {
         let u64 = u64::from(bitboard);
 
         if bitboard.is_none() {
-            return Err("Cannot convert empty Bitboard to u8".into());
+            return Err("Cannot convert empty Bitboard to u8".to_string());
         }
 
         if u64 & u64 - 1 != 0 {
-            return Err("Cannot convert Bitboard with multiple u8s into one u8".into());
+            return Err("Cannot convert Bitboard with multiple u8s into one u8".to_string());
         }
 
         Ok(u64.trailing_zeros() as u8)
