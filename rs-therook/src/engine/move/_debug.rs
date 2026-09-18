@@ -24,14 +24,14 @@ impl Move {
     fn format_promotion(promotion_piece_type: Option<PieceType>) -> String {
         if let Some(piece_type) = promotion_piece_type {
             match piece_type {
-                PieceType::Queen => "q".into(),
-                PieceType::Rook => "r".into(),
-                PieceType::Bishop => "b".into(),
-                PieceType::Knight => "n".into(),
-                _ => unreachable!(),
+                PieceType::Queen => "q".to_string(),
+                PieceType::Rook => "r".to_string(),
+                PieceType::Bishop => "b".to_string(),
+                PieceType::Knight => "n".to_string(),
+                _ => panic!("Unknown promotion piece type"),
             }
         } else {
-            "".into()
+            "".to_string()
         }
     }
 }

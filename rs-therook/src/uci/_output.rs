@@ -20,7 +20,7 @@ pub fn move_to_uci(r#move: Move) -> String {
             PieceType::Rook => 'r',
             PieceType::Bishop => 'b',
             PieceType::Knight => 'n',
-            _ => unreachable!(),
+            piece => panic!("unknown promotion piece type: {}", u8::from(piece)),
         });
     }
     text

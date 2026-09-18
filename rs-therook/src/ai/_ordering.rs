@@ -40,7 +40,9 @@ pub fn uci_order_key(r#move: Move) -> u16 {
         Some(PieceType::Knight) => 2,
         Some(PieceType::Queen) => 3,
         Some(PieceType::Rook) => 4,
-        Some(PieceType::King | PieceType::Pawn) => unreachable!(),
+        Some(PieceType::King | PieceType::Pawn) => {
+            panic!("invalid promotion piece type in ordering key")
+        }
     };
     (square_key(r#move.get_start()) * 64 + square_key(r#move.get_end())) * 5 + promotion_key
 }

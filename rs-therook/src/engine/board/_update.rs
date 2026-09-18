@@ -22,7 +22,7 @@ impl Board<'_> {
                     check_state = match check_state {
                         CheckState::None => CheckState::Single(square),
                         CheckState::Single(_) => CheckState::Double,
-                        CheckState::Double => unreachable!(),
+                        CheckState::Double => panic!("Invalid triple check state"),
                     }
                 }
             }

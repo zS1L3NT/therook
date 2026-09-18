@@ -85,7 +85,7 @@ impl Board<'_> {
                 }
 
                 if !has_errors {
-                    unreachable!();
+                    panic!("Divergent perft moves with no missing or invalid move");
                 }
             }
         }

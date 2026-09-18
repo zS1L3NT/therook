@@ -59,7 +59,7 @@ fn handle_go(
     let bestmove = report
         .best
         .map(move_to_uci)
-        .unwrap_or_else(|| "0000".into());
+        .unwrap_or_else(|| "0000".to_string());
     write_line(output, &format!("bestmove {bestmove}"))
 }
 
