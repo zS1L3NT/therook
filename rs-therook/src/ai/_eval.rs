@@ -39,7 +39,11 @@ fn mg_square_bonus(piece_type: PieceType, file: u8, rank: u8) -> i32 {
         PieceType::Queen => (6 - (cd + rd)) * 2,
         PieceType::King => {
             // Kings hide on the back rank near the corners in the middlegame.
-            let back_rank = if rank <= 1 { 10 + cd * 4 } else { -(rank as i32) * 5 };
+            let back_rank = if rank <= 1 {
+                10 + cd * 4
+            } else {
+                -(rank as i32) * 5
+            };
             -(cd + rd) * 6 + back_rank
         }
     }
@@ -133,7 +137,10 @@ fn structure_bonus(board: &Board<'_>) -> i32 {
                     } else {
                         r < rank
                     };
-                    ahead && (u64::from(board.pieces[enemy | PieceType::Pawn]) >> (r * 8 + f as u8)) & 1 == 1
+                    ahead
+                        && (u64::from(board.pieces[enemy | PieceType::Pawn]) >> (r * 8 + f as u8))
+                            & 1
+                            == 1
                 })
             });
             if !blocked_ahead {
