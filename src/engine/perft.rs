@@ -135,8 +135,9 @@ mod tests {
         board.perft_compare_stockfish(&mut stockfish, 4); // 197_281
         board.perft_compare_stockfish(&mut stockfish, 5); // 4_865_609
         board.perft_compare_stockfish(&mut stockfish, 6); // 119_060_324
-        // board.perft_compare_stockfish(&mut stockfish, 7); // 3_195_901_860
+        board.perft_compare_stockfish(&mut stockfish, 7); // 3_195_901_860
         // board.perft_compare_stockfish(&mut stockfish, 8); // 84_998_978_956
+        // board.perft_compare_stockfish(&mut stockfish, 9); // 2_439_530_234_167
     }
 
     // https://www.chessprogramming.org/Perft_Results#Position_2
@@ -154,7 +155,7 @@ mod tests {
         board.perft_compare_stockfish(&mut stockfish, 3); // 97_862
         board.perft_compare_stockfish(&mut stockfish, 4); // 4_085_603
         board.perft_compare_stockfish(&mut stockfish, 5); // 193_690_690
-        // board.perft_compare_stockfish(&mut stockfish, 6); // 8_031_647_685
+        board.perft_compare_stockfish(&mut stockfish, 6); // 8_031_647_685
     }
 
     // https://www.chessprogramming.org/Perft_Results#Position_3
@@ -171,7 +172,7 @@ mod tests {
         board.perft_compare_stockfish(&mut stockfish, 5); // 674_624
         board.perft_compare_stockfish(&mut stockfish, 6); // 11_030_083
         board.perft_compare_stockfish(&mut stockfish, 7); // 178_633_661
-        // board.perft_compare_stockfish(&mut stockfish, 8); // 3_009_794_393
+        board.perft_compare_stockfish(&mut stockfish, 8); // 3_009_794_393
     }
 
     // https://www.chessprogramming.org/Perft_Results#Position_4
@@ -189,7 +190,7 @@ mod tests {
         board.perft_compare_stockfish(&mut stockfish, 3); // 9_467
         board.perft_compare_stockfish(&mut stockfish, 4); // 422_333
         board.perft_compare_stockfish(&mut stockfish, 5); // 15_833_292
-        // board.perft_compare_stockfish(&mut stockfish, 6); // 706_045_033
+        board.perft_compare_stockfish(&mut stockfish, 6); // 706_045_033
     }
 
     // https://www.chessprogramming.org/Perft_Results#Position_5
@@ -224,7 +225,7 @@ mod tests {
         board.perft_compare_stockfish(&mut stockfish, 3); // 89_890
         board.perft_compare_stockfish(&mut stockfish, 4); // 3_894_594
         board.perft_compare_stockfish(&mut stockfish, 5); // 164_075_551
-        // board.perft_compare_stockfish(&mut stockfish, 6); // 6_923_051_137
+        board.perft_compare_stockfish(&mut stockfish, 6); // 6_923_051_137
         // board.perft_compare_stockfish(&mut stockfish, 7); // 287_188_994_746
         // board.perft_compare_stockfish(&mut stockfish, 8); // 11_923_589_843_526
         // board.perft_compare_stockfish(&mut stockfish, 9); // 490_154_852_788_714
