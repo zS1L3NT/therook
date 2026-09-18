@@ -17,7 +17,45 @@ I also have an old implementation of a chess engine using rust called [ThePawn](
 - Deterministic iterative-deepening negamax search with alpha-beta pruning, captures-only quiescence and MVV-LVA move ordering
 - Hand-written tapered evaluation (middlegame/endgame piece-square tables, pawn structure, bishop pair, rooks on open files, passed pawns, tempo)
 - Plain UCI interface (`uci`, `isready`, `ucinewgame`, `position`, `go depth|movetime|wtime|btime|infinite`, `stop`, `quit`) reporting `info depth score nodes time pv` + `bestmove`, compatible with any UCI chess GUI or tournament harness such as fastchess
-- Measured playing strength of around ~1M nodes/sec single-threaded; fastchess at `10+0.1` scores +359 against Maia-1100, +315 against Maia-1500 and +179 against Maia-1900, putting it on par with Stockfish capped at UCI_Elo 1540
+
+## Strength
+
+Measured playing strength of around **~1M nodes/sec single-threaded** on a MacBook M1 Pro; fastchess at `10+0.1` scores +359 against Maia-1100, +315 against Maia-1500 and +179 against Maia-1900, putting it on par with Stockfish capped at **UCI_Elo 1540**
+
+### Search performance
+
+| Depth | Nodes (mean) | Nodes (median) | Nodes (range) | Time (mean) | Speed | Branching (mean/median) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 61 | 57 | 32–175 | <1 ms | n/a | — |
+| 2 | 494 | 442 | 140–1,691 | 0.1 ms | ~0.96M nps | 8.4 / 7.5 |
+| 3 | 4,516 | 4,021 | 1,094–13,551 | 4.5 ms | ~1.08M nps | 9.6 / 9.2 |
+| 4 | 35,778 | 30,826 | 3,803–143,250 | 41 ms | ~0.89M nps | 7.7 / 7.3 |
+| 5 | 293,040 | 253,569 | 31,867–1,487,740 | 336 ms | ~0.90M nps | 8.4 / 8.0 |
+
+Single-threaded speed sits at around 1M nodes/sec with an effective branching factor of about 8. For reference, depth 6 from the start position searches 686,748 nodes in 698 ms, a middlegame depth 5 reaches 743k nodes in about a second, and a mate-in-1 is found after just 93 nodes.
+
+### Playing strength vs Maia
+
+Maia running under lc0 at one node per move (human-like instant play):
+
+| Opponent | Games | Score (W-L-D) | Points | Elo diff |
+| --- | --- | --- | --- | --- |
+| maia-1100 | 40 | 31-0-9 | 88.75% | +359 ±103 |
+| maia-1500 | 100 | 76-4-20 | 86.0% | +315 ±87 |
+| maia-1900 | 40 | 25-6-9 | 73.75% | +179 ±106 |
+
+### Playing strength vs Stockfish
+
+Stockfish 19 with capped `UCI_Elo`, same time control and openings:
+
+| Opponent | Games | Score (W-L-D) | Points | Elo diff |
+| --- | --- | --- | --- | --- |
+| SF Elo 1400 | 40 | 35-1-4 | 92.5% | +436 ±209 |
+| SF Elo 1500 | 40 | 22-17-1 | 56.25% | +44 ±86 |
+| SF Elo 1600 | 40 | 14-22-4 | 40.0% | -70 ±118 |
+| SF Elo 1800 | 40 | 11-28-1 | 28.75% | -158 ±113 |
+
+The 50% point lands at **Stockfish UCI_Elo ~1540** (full-strength Stockfish is out of reach at 0-30). Bridging the two scales puts Maia-1900 at ~1360, Maia-1500 at ~1225 and Maia-1100 at ~1180 Stockfish-Elo: instant-move Maia plays well below its human-rating label.
 
 ## Credits
 
