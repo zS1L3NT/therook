@@ -112,6 +112,8 @@ impl Board<'_> {
         // Increment halfmove & fullmove
         if piece_type != PieceType::Pawn && state.captured.is_none() {
             state.halfmove += 1;
+        } else {
+            state.halfmove = 0;
         }
 
         if color == PieceColor::Black {
