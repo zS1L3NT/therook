@@ -86,7 +86,6 @@ pub fn parse_position(board: &mut Board<'_>, tokens: &[&str]) -> Result<(), Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::panic::{AssertUnwindSafe, catch_unwind};
 
     #[test]
     fn uci_move_round_trip_restores_position() {
